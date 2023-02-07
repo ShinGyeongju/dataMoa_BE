@@ -4,11 +4,16 @@ require('winston-mongodb');
 
 
 // Custom format
-const customTransportFormat = winston.format.combine(
+const customTransportFormat_MongoDB = winston.format.combine(
   winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss', alias: 'timestamp_kr'}),
   winston.format.metadata({fillWith: ['timestamp_kr']}),
   winston.format.json()
 );
+
+const customTransportFormat_Console = winston.format.combine(
+  winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+  winston.format.printf(info => `${info.timestamp} [${info.level.toUpperCase()}] ${info.message}`)
+)
 
 const customMorganFormat = ':method :url [:remote-addr - :remote-user] :status - :response-time ms';
 
@@ -21,20 +26,20 @@ const createTransportObj_MongoDB = (level, collection) => {
       useUnifiedTopology: true
     },
     dbName: 'Logs',
-    collection: collection
+    collection: collection,
+    format: customTransportFormat_MongoDB
   });
 }
 
 const createTransportObj_Console = () => {
-  return new winston.transports.Console();
+  return new winston.transports.Console({
+    format: customTransportFormat_Console
+  });
 }
 
 // Logger
 const datamoaLogger = winston.createLogger({
-  format: customTransportFormat,
   transports: [
-    createTransportObj_MongoDB('info', 'datamoa'),
-    createTransportObj_MongoDB('error', 'datamoa_error'),
     createTransportObj_Console()
   ]
 });
@@ -46,6 +51,12 @@ datamoaLogger.httpLogger = morgan(customMorganFormat, {
     }
   }
 });
+
+
+if (process.env.NODE_ENV !== 'dev') {
+  datamoaLogger.add(createTransportObj_MongoDB('info', 'datamoa'));
+  datamoaLogger.add(createTransportObj_MongoDB('error', 'datamoa_error'));
+}
 
 
 module.exports.datamoaLogger = datamoaLogger;
