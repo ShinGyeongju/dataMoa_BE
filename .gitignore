@@ -2,11 +2,6 @@
 node_modules/
 package-lock.json
 
-
 # logs
 logs/
 *.log
-
-
-# env
-*.env
