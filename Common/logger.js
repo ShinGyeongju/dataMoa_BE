@@ -1,7 +1,7 @@
 const morgan = require('morgan');
 const winston = require('winston');
 require('winston-mongodb');
-const {serverConfig, mongoConfig} = require('../Common/config');
+const {serverConfig, mongoConfig_Log} = require('../Common/config');
 
 
 module.exports.init = () => {
@@ -23,7 +23,7 @@ module.exports.init = () => {
   const createTransportObj_MongoDB = (level, collection) => {
     return new winston.transports.MongoDB({
       level: level,
-      db: mongoConfig.url,
+      db: mongoConfig_Log.url,
       options: {
         useUnifiedTopology: true
       },

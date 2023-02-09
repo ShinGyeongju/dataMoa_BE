@@ -12,15 +12,16 @@ module.exports.init = () => {
     port: process.env.HTTP_PORT
   }
 
-  module.exports.mongoConfig = {
-    url: process.env.MONGO_URL
+  module.exports.mongoConfig_Log = {
+    url: process.env.MONGO_LOG_URL
   }
 
-  module.exports.postgresConfig = {
-    address: process.env.POSTGRES_ADDRESS,
-    port: process.env.POSTGRES_PORT,
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD
+  module.exports.postgresConfig_Datamoa = {
+    address: process.env.POSTGRES_DATAMOA_ADDRESS,
+    port: process.env.POSTGRES_DATAMOA_PORT,
+    database: process.env.POSTGRES_DATAMOA_DATABASE,
+    user: process.env.POSTGRES_DATAMOA_USER,
+    password: process.env.POSTGRES_DATAMOA_PASSWORD
   }
 
 }

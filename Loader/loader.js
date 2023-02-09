@@ -9,7 +9,7 @@ module.exports.init = async (app) => {
   try {
     await expressLoader(app);
 
-    //module.exports.postgresClient = await postgresLoader();
+    await postgresLoader.dbConnect();
 
     return true;
   } catch (err) {

@@ -11,10 +11,10 @@ module.exports = (app) => {
   //   console.log('Default PAGE !!@#@!#!@');
   // });
 
-  // TODO: 화장실 위치 찾기 page
+  // TODO: 화장실 위치 찾기 page 추가 예정.
   //
 
-  // TODO: 복권방 위치 찾기 page
+  // TODO: 복권방 위치 찾기 page 추가 예정.
   //
 
   // Default page

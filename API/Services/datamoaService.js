@@ -1,4 +1,5 @@
 const logger = require('../../Common/logger').datamoaLogger;
+//const datamoaModel = require('../Models/datamoaModel');
 
 module.exports.getDatamoa = (req, res, next) => {
   logger.info('test Log 1');
