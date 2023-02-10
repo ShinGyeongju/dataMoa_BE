@@ -1,4 +1,4 @@
-const {defaultPage, defaultErrorHandler} = require('../Services/commonService');
+const commonService = require('../Services/commonService');
 const datamoaRouter = require('./datamoaRouter');
 const {datamoaLogger} = require('../../Common/logger');
 
@@ -18,9 +18,9 @@ module.exports = (app) => {
   //
 
   // Default page
-  app.use(defaultPage);
+  app.use(commonService.defaultPage);
 
   // Default error handler
-  app.use(defaultErrorHandler);
+  app.use(commonService.defaultErrorHandler);
 
 }

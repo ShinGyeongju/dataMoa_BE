@@ -6,9 +6,15 @@ const {serverConfig, mongoConfig_Log} = require('../Common/config');
 
 module.exports.init = () => {
   // Custom format
-  const customTransportFormat_MongoDB = winston.format.combine(
+  const customTransportFormat_MongoDB_Info = winston.format.combine(
     winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss', alias: 'timestamp_kr'}),
     winston.format.metadata({fillWith: ['timestamp_kr']}),
+    winston.format.json()
+  );
+
+  const customTransportFormat_MongoDB_Error = winston.format.combine(
+    winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss', alias: 'timestamp_kr'}),
+    winston.format.metadata({fillWith: ['timestamp_kr', 'code', 'stack']}),
     winston.format.json()
   );
 
@@ -20,7 +26,7 @@ module.exports.init = () => {
   const customMorganFormat = ':method :url [:remote-addr - :remote-user] :status - :response-time ms';
 
   // Create transport object
-  const createTransportObj_MongoDB = (level, collection) => {
+  const createTransportObj_MongoDB = (level, collection, format) => {
     return new winston.transports.MongoDB({
       level: level,
       db: mongoConfig_Log.url,
@@ -29,7 +35,7 @@ module.exports.init = () => {
       },
       dbName: 'Logs',
       collection: collection,
-      format: customTransportFormat_MongoDB
+      format: format
     });
   }
 
@@ -56,8 +62,8 @@ module.exports.init = () => {
 
 
   if (serverConfig.env !== 'dev') {
-    datamoaLogger.add(createTransportObj_MongoDB('info', 'datamoa'));
-    datamoaLogger.add(createTransportObj_MongoDB('error', 'datamoa_error'));
+    datamoaLogger.add(createTransportObj_MongoDB('info', 'datamoa', customTransportFormat_MongoDB_Info));
+    datamoaLogger.add(createTransportObj_MongoDB('error', 'datamoa_error', customTransportFormat_MongoDB_Error));
   }
 
   module.exports.datamoaLogger = datamoaLogger;
