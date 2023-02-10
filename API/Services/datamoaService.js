@@ -68,13 +68,6 @@ module.exports.postVoc = async (req, res, next) => {
     const voc = new datamoaModel.Voc();
     await voc.create(req.body);
 
-    // const responseResult = rows.map(row => {
-    //   return {
-    //     vocCategoryId: row.voc_category_id,
-    //     vocCategoryTitle: row.voc_category_name
-    //   }
-    // });
-
     const response = createResponseObj(req.body, 'ok', true);
 
     res.status(200).json(response);

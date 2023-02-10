@@ -19,7 +19,7 @@ module.exports.defaultPage = (req, res, next) => {
 // Default error handler
 module.exports.defaultErrorHandler = (err, req, res, next) => {
   //res.status(500)
-  const response = this.createResponseObj({}, err.message, false);
+  const response = this.createResponseObj({}, err.code, false);
 
   res.status(500).json(response);
 }

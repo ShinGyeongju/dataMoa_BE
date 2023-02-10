@@ -16,9 +16,10 @@ module.exports.dbConnect = async () => {
   await new Promise((resolve, reject) => {
     postgresClient_Datamoa.connect(err => {
       if (err) {
+        console.log('[Datamoa] Connect to postgres failed.');
         reject(err);
       } else {
-        //console.log('Connect to postgres[Datamoa] done.');
+        console.log('[Datamoa] Connect to postgres done.');
         resolve();
       }
     });
