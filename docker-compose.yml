@@ -29,6 +29,24 @@ services:
       - postgres_datamoa:/var/lib/postgresql/data
       - ./SQL/postgres_datamoa_init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  node_server:
+    container_name: "Node_Server"
+    image: "node:19-alpine"
+    restart: always
+    env_file:
+      - ./config.env
+    working_dir: /usr/src/app
+    depends_on:
+      - db_mongo_log
+      - db_postgres_datamoa
+    ports:
+      - "80:${HTTP_PORT}"
+    environment:
+      NODE_ENV: "${NODE_ENV}"
+    volumes:
+      - ./:/usr/src/app
+    command: bash -c "npm install && npm start"
+
 volumes:
   mongo_log:
   postgres_datamoa:
