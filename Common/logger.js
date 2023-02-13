@@ -29,7 +29,8 @@ module.exports.init = () => {
   const createTransportObj_MongoDB = (level, collection, format) => {
     return new winston.transports.MongoDB({
       level: level,
-      db: mongoConfig_Log.url,
+      // mongodb://root:1234@localhost:27017
+      db: `mongodb://${mongoConfig_Log.user}:${mongoConfig_Log.password}@${mongoConfig_Log.address}:${mongoConfig_Log.port}`,
       options: {
         useUnifiedTopology: true
       },

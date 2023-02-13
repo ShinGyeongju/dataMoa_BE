@@ -13,7 +13,10 @@ module.exports.init = () => {
   }
 
   module.exports.mongoConfig_Log = {
-    url: process.env.MONGO_LOG_URL
+    address: process.env.MONGO_LOG_ADDRESS,
+    port: process.env.MONGO_LOG_PORT,
+    user: process.env.MONGO_LOG_USER,
+    password: process.env.MONGO_LOG_PASSWORD
   }
 
   module.exports.postgresConfig_Datamoa = {

@@ -5,14 +5,14 @@ const {postgresConfig_Datamoa} = require('../Common/config');
 // Postgres pool
 const postgresClient_Datamoa = new Pool({
   host: postgresConfig_Datamoa.address,
-  post: postgresConfig_Datamoa.port,
+  port: postgresConfig_Datamoa.port,
   database: postgresConfig_Datamoa.database,
   user: postgresConfig_Datamoa.user,
   password: postgresConfig_Datamoa.password,
 });
 
 // Connection test
-module.exports.dbConnect = async () => {
+module.exports.dbConnect_Datamoa = async () => {
   await new Promise((resolve, reject) => {
     postgresClient_Datamoa.connect(err => {
       if (err) {

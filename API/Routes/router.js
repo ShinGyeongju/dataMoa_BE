@@ -4,12 +4,8 @@ const {datamoaLogger} = require('../../Common/logger');
 
 
 module.exports = (app) => {
-
   // Datamoa page
   app.use('/', datamoaLogger.httpLogger, datamoaRouter, );
-  // app.use('/', (err, req, res, next) => {
-  //   console.log('Default PAGE !!@#@!#!@');
-  // });
 
   // TODO: 화장실 위치 찾기 page 추가 예정.
   //
@@ -22,5 +18,4 @@ module.exports = (app) => {
 
   // Default error handler
   app.use(commonService.defaultErrorHandler);
-
 }
