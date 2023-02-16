@@ -25,8 +25,13 @@ module.exports.defaultPage = (req, res, next) => {
 }
 
 // Default error handler
-module.exports.defaultErrorHandler = (err, req, res, next) => {
-  const response = this.createResponseObj({}, err.code || '10000', false);
+const errorCodeArray_400 = ['22001', '23502', '23503'];
 
-  res.status(500).json(response);
+module.exports.defaultErrorHandler = (err, req, res, next) => {
+  err.code = err.code || '10000';
+  err.statusCode = errorCodeArray_400.includes(err.code) ? 400 : 500;
+
+  const response = this.createResponseObj({}, err.code, false);
+
+  res.status(err.statusCode).json(response);
 }

@@ -73,6 +73,8 @@ module.exports.postVoc = async (req, res, next) => {
     res.status(200).json(response);
   } catch (err) {
     logger.error(err.message, createErrorMetaObj(err));
+
+    console.log(err);
     next(err);
   }
 }
