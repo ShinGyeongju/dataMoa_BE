@@ -42,11 +42,15 @@ module.exports.Voc = class Voc {
   }
 
   async create(vocObject) {
-    const {rows} = await datamoaDB.query(`SELECT page_id FROM tb_page WHERE page_url = '${vocObject.pageUrl}'`);
+
+    // TODO: 문의 관련 예외처리 필요.
 
     return datamoaDB.query(`
-        INSERT INTO tb_voc (page_id, voc_category_id, voc_content)
-        VALUES (${rows[0].page_id}, ${vocObject.vocCategoryId}, '${vocObject.vocContent}')
+      INSERT INTO tb_voc (page_id, voc_category_id, voc_content)
+      VALUES (
+        (SELECT page_id FROM tb_page WHERE page_url = '${vocObject.pageUrl}'), 
+        ${vocObject.vocCategoryId}, 
+        '${vocObject.vocContent}')
     `);
   }
 }
