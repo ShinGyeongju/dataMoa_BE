@@ -11,7 +11,7 @@ CREATE TABLE tb_page_category (
 
 CREATE TABLE tb_page (
     page_id INT GENERATED ALWAYS AS IDENTITY,
-    category_id INT,
+    category_id INT NOT NULL,
     page_name VARCHAR(30) NOT NULL,
     page_url VARCHAR(100) NOT NULL,
     page_description VARCHAR(300),
@@ -30,7 +30,7 @@ CREATE TABLE tb_voc_category (
 CREATE TABLE tb_voc (
     voc_id UUID DEFAULT uuid_generate_v4(),
     page_id INT,
-    voc_category_id INT,
+    voc_category_id INT NOT NULL,
     voc_content VARCHAR(500) NOT NULL,
     CONSTRAINT pk_voc_id PRIMARY KEY (voc_id),
     CONSTRAINT fk_page_id FOREIGN KEY (page_id)

@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   db_mongo_log:
-    container_name: "MongoDB_LOG"
+    container_name: "Log_DB"
     image: "mongo:6.0.4"
     env_file:
       - ./config.env
@@ -15,7 +15,7 @@ services:
       - mongo_log:/data/db
 
   db_postgres_datamoa:
-    container_name: "Postgres_Datamoa"
+    container_name: "Datamoa_DB"
     image: "postgres:15-alpine"
     env_file:
       - ./config.env

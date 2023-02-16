@@ -23,7 +23,7 @@ module.exports.init = () => {
     winston.format.printf(info => `${info.timestamp} [${info.level.toUpperCase()}] ${info.message}`)
   )
 
-  const customMorganFormat = ':method :url [:remote-addr - :remote-user] :status - :response-time ms';
+  const customMorganFormat = ':method :url (:remote-addr) :status - :response-time ms';
 
   // Create transport object
   const createTransportObj_MongoDB = (level, collection, format) => {

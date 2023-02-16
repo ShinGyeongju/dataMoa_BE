@@ -1,12 +1,12 @@
 const logger = require('../../Common/logger').datamoaLogger;
 const datamoaModel = require('../Models/datamoaModel');
-const {createResponseObj} = require('./commonService');
+const {createResponseObj, createErrorMetaObj} = require('./commonService');
 
 
 // Service
 module.exports.getDatamoa = (req, res, next) => {
-  logger.info('test Log 1');
-  next(new Error('test 1111'));
+  //logger.info('test Log 1');
+  //next(new Error('test 1111'));
 
   res.json({result: '1111'});
 }
@@ -34,7 +34,7 @@ module.exports.getCategory = async (req, res, next) => {
 
     res.status(200).json(response);
   } catch (err) {
-    logger.error(err.message, {code: err.code, stack: err.stack});
+    logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
 }
@@ -58,7 +58,7 @@ module.exports.getSubpage = async (req, res, next) => {
 
     res.status(200).json(response);
   } catch (err) {
-    logger.error(err.message, {code: err.code, stack: err.stack});
+    logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
 }
@@ -66,13 +66,13 @@ module.exports.getSubpage = async (req, res, next) => {
 module.exports.postVoc = async (req, res, next) => {
   try {
     const voc = new datamoaModel.Voc();
-    await voc.create(req.body);
+    const result = await voc.create(req.body);
 
     const response = createResponseObj(req.body, 'ok', true);
 
     res.status(200).json(response);
   } catch (err) {
-    logger.error(err.message, {code: err.code, stack: err.stack});
+    logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
 }
@@ -93,7 +93,7 @@ module.exports.getVocCategory = async (req, res, next) => {
 
     res.status(200).json(response);
   } catch (err) {
-    logger.error(err.message, {code: err.code, stack: err.stack});
+    logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
 }
