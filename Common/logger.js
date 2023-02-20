@@ -61,11 +61,27 @@ module.exports.init = () => {
     }
   });
 
+  const toiletLogger = winston.createLogger({
+    transports: [
+      createTransportObj_Console()
+    ]
+  });
+
+  toiletLogger.httpLogger = morgan(customMorganFormat, {
+    stream: {
+      write: message => {
+        toiletLogger.info(message);
+      }
+    }
+  });
 
   if (serverConfig.env !== 'dev') {
     datamoaLogger.add(createTransportObj_MongoDB('info', 'datamoa', customTransportFormat_MongoDB_Info));
     datamoaLogger.add(createTransportObj_MongoDB('error', 'datamoa_error', customTransportFormat_MongoDB_Error));
+    toiletLogger.add(createTransportObj_MongoDB('info', 'toilet', customTransportFormat_MongoDB_Info));
+    toiletLogger.add(createTransportObj_MongoDB('error', 'toilet_error', customTransportFormat_MongoDB_Error));
   }
 
   module.exports.datamoaLogger = datamoaLogger;
+  module.exports.toiletLogger = toiletLogger;
 }

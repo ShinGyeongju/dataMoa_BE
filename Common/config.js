@@ -27,4 +27,12 @@ module.exports.init = () => {
     password: process.env.POSTGRES_DATAMOA_PASSWORD
   }
 
+  module.exports.postgresConfig_Toilet = {
+    address: process.env.POSTGRES_TOILET_ADDRESS,
+    port: process.env.POSTGRES_TOILET_PORT,
+    database: process.env.POSTGRES_TOILET_DATABASE,
+    user: process.env.POSTGRES_TOILET_USER,
+    password: process.env.POSTGRES_TOILET_PASSWORD
+  }
+
 }
