@@ -42,9 +42,6 @@ module.exports.Voc = class Voc {
   }
 
   async create(vocObject) {
-
-    // TODO: 문의 관련 예외처리 필요.
-
     return datamoaDB.query(`
       INSERT INTO tb_voc (page_id, voc_category_id, voc_content)
       VALUES (

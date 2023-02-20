@@ -4,6 +4,7 @@ const {postgresConfig_Datamoa, postgresConfig_Toilet} = require('../Common/confi
 
 // Postgres pool
 const postgresClient_Datamoa = new Pool({
+  name: 'Datamoa',
   host: postgresConfig_Datamoa.address,
   port: postgresConfig_Datamoa.port,
   database: postgresConfig_Datamoa.database,
@@ -12,6 +13,7 @@ const postgresClient_Datamoa = new Pool({
 });
 
 const postgresClient_Toilet = new Pool({
+  name: 'Toilet',
   host: postgresConfig_Toilet.address,
   port: postgresConfig_Toilet.port,
   database: postgresConfig_Toilet.database,
@@ -20,14 +22,14 @@ const postgresClient_Toilet = new Pool({
 });
 
 // Connection test
-module.exports.dbConnect_Datamoa = async (pgClient) => {
+module.exports.dbConnect = async (pgClient) => {
   await new Promise((resolve, reject) => {
     pgClient.connect(err => {
       if (err) {
-        console.log('[Datamoa] Connect to postgres failed.');
+        console.log(`[${pgClient.options.name}] Connect to postgres failed.`);
         reject(err);
       } else {
-        console.log('[Datamoa] Connect to postgres done.');
+        console.log(`[${pgClient.options.name}] Connect to postgres done.`);
         resolve();
       }
     });

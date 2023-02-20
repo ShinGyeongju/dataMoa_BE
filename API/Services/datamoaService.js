@@ -5,10 +5,7 @@ const {createResponseObj, createErrorMetaObj} = require('./commonService');
 
 // Service
 module.exports.getDatamoa = (req, res, next) => {
-  //logger.info('test Log 1');
-  //next(new Error('test 1111'));
-
-  res.json({result: '1111'});
+  res.sendfile();
 }
 
 module.exports.getCategory = async (req, res, next) => {

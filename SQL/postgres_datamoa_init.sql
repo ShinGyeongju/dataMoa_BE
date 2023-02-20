@@ -1,4 +1,6 @@
 
+CREATE DATABASE datamoa;
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ---------------------------------------------------------------
