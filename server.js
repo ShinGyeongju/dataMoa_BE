@@ -24,7 +24,7 @@ const startServer = async () => {
     }
 
     console.log(`Server is listening at [http://localhost:${serverConfig.port}]`);
-  })
+  });
 }
 
 startServer();

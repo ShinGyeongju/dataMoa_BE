@@ -12,6 +12,10 @@ module.exports.init = () => {
     port: process.env.HTTP_PORT
   }
 
+  module.exports.apiKeyConfig = {
+    kakaoMap: process.env.KAKAKO_MAP_API_KEY
+  }
+
   module.exports.mongoConfig_Log = {
     address: process.env.MONGO_LOG_ADDRESS,
     port: process.env.MONGO_LOG_PORT,
