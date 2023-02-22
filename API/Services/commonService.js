@@ -28,6 +28,9 @@ module.exports.defaultPage = (req, res, next) => {
 const errorCodeArray_400 = ['22001', '23502', '23503'];
 
 module.exports.defaultErrorHandler = (err, req, res, next) => {
+  console.log(err);
+
+
   err.code = err.code || '10000';
   err.statusCode = errorCodeArray_400.includes(err.code) ? 400 : 500;
 

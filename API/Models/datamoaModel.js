@@ -7,7 +7,7 @@ module.exports.PageCategory = class PageCategory {
 
   readAll() {
     return datamoaDB.query('SELECT\n' +
-      '    category.category_id AS category_id, category.category_name AS category_title, array_agg(page.page_id) AS page_id_Array\n' +
+      '    category.category_id AS category_id, category.category_name AS category_title, array_to_json(array_agg(page.*)) AS page_Array\n' +
       'FROM\n' +
       '    tb_page_category AS category LEFT OUTER JOIN tb_page AS page ON category.category_id = page.category_id\n' +
       'GROUP BY category.category_id\n' +
@@ -20,11 +20,21 @@ module.exports.Page = class Page {
   }
 
   readAll() {
-    return datamoaDB.query('SELECT * FROM tb_page ORDER BY page_id');
+    return datamoaDB.query('SELECT\n' +
+      '    *\n' +
+      'FROM\n' +
+      '    tb_page AS page LEFT OUTER JOIN tb_page_category AS category ON page.category_id = category.category_id\n' +
+      'ORDER BY\n' +
+      '    page_id;');
   }
 
   readById(pageId) {
-    return datamoaDB.query(`SELECT * FROM tb_page WHERE page_id = ${pageId}`);
+    return datamoaDB.query('SELECT\n' +
+      '    *\n' +
+      'FROM\n' +
+      '    tb_page AS page LEFT OUTER JOIN tb_page_category AS category ON page.category_id = category.category_id\n' +
+      'WHERE \n' +
+      '    page_id = ' + `${pageId};`);
   }
 }
 

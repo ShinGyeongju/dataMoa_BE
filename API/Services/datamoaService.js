@@ -14,16 +14,22 @@ module.exports.getCategory = async (req, res, next) => {
     const {rows} = await pageCategory.readAll();
 
     const responseResult = rows.map(row => {
-      const pageIdAry = row.page_id_array.sort().map(pageId => {
-        return {
-          pageId: pageId
-        }
+      const pageIdAry = row.page_array
+        .sort((a, b) => {
+          return a.page_id - b.page_id;
+        })
+        .map(page => {
+          return {
+            pageId: page.page_id,
+            pageTitle: page.page_name,
+            pageUrl: page.page_url
+          }
       });
 
       return {
         categoryId: row.category_id,
         categoryTitle: row.category_title,
-        pageIdArray: pageIdAry
+        pageDataArray: pageIdAry
       }
     });
 
@@ -42,12 +48,14 @@ module.exports.getSubpage = async (req, res, next) => {
     const {rows} = req.params.pageId ? await page.readById(req.params.pageId) : await page.readAll();
 
     const responseResult = rows.map(row => {
+      console.log(row);
       return {
         pageId: row.page_id,
         pageTitle: row.page_name,
         pageUrl: row.page_url,
         pageDescription: row.page_description,
-        categoryId: row.category_id
+        categoryId: row.category_id,
+        categoryTitle: row.category_name
       }
     });
 
