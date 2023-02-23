@@ -6,7 +6,7 @@ module.exports.Toilet = class Toilet {
   }
 
   async create(insertObj) {
-    let querySql = 'INSERT INTO tb_toilet (toilet_category_id, toilet_name, management_agency, phone_number, open_hour, wsg84_x, wsg84_y) VALUES ';
+    let querySql = 'INSERT INTO tb_toilet (toilet_category_id, toilet_name, toilet_region, toilet_address, management_agency, phone_number, open_hour, wsg84_x, wsg84_y) VALUES ';
 
     const stringValidator = (str) => {
       if (str.includes("'")) {
@@ -22,7 +22,7 @@ module.exports.Toilet = class Toilet {
     }
 
     insertObj.forEach(row => {
-      querySql += `(${row.category}, '${stringValidator(row.name)}', '${stringValidator(row.management)}', '${row.phoneNum}', '${row.openHour}', ${row.x}, ${row.y}),`;
+      querySql += `(${row.category}, '${stringValidator(row.name)}', '${row.region}', '${row.address}', '${stringValidator(row.management)}', '${row.phoneNum}', '${row.openHour}', ${row.x}, ${row.y}),`;
     });
 
     return toiletDB.query(querySql.slice(0, -1));

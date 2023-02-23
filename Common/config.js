@@ -13,7 +13,9 @@ module.exports.init = () => {
   }
 
   module.exports.apiKeyConfig = {
-    kakaoMap: process.env.KAKAKO_MAP_API_KEY
+    kakaoMap: process.env.KAKAKO_MAP_API_KEY,
+    naverMapId: process.env.NAVER_MAP_API_ID,
+    naverMapSecret: process.env.NAVER_MAP_API_SECRET
   }
 
   module.exports.mongoConfig_Log = {
