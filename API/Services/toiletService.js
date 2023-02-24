@@ -27,7 +27,7 @@ module.exports.getSync = async (req, res, next) => {
 
   try {
     for (const pair of toiletRegionUrlPairs) {
-      logger.info(`toilet `)
+      const startTime = new Date();
 
       // Excel download from url
       const response = await fetch(pair.url);
@@ -39,22 +39,30 @@ module.exports.getSync = async (req, res, next) => {
       const sheet = workbook.Sheets[sheetName];
       const jsonSheet = excel.utils.sheet_to_json(sheet);
 
-      console.log(`${new Date().toLocaleString()} - xlsx count : ${jsonSheet.length}`);
+      logger.info(`${[pair.region]} Target : ${jsonSheet.length}`);
 
       // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
-      const insertObj = [];
-      let requestFailedCount = 0;
+      const insertObjectArray = [];
+      const failedAddressArray = [];
       for (const row of jsonSheet) {
         const address = row['소재지도로명주소'] || row['소재지지번주소'];
 
-        // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
-        let result = await mapApiRequest_Kakao(address);
-        if (!result) {
-          result = await mapApiRequest_Naver(address);
+        let x = row['WGS84위도'];
+        let y = row['WGS84경도'];
+
+        if (!x || !y) {
+          // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
+          let result = await mapApiRequest_Kakao(address);
           if (!result) {
-            requestFailedCount++;
-            continue;
+            result = await mapApiRequest_Naver(address);
+            if (!result) {
+              failedAddressArray.push(address);
+              continue;
+            }
           }
+
+          x = result.x;
+          y = result.y;
         }
 
         const categoryStr = row['구분'];
@@ -67,7 +75,7 @@ module.exports.getSync = async (req, res, next) => {
           category = 3;
         }
 
-        insertObj.push({
+        insertObjectArray.push({
           category: category,
           name: row['화장실명'] || '',
           region: pair.region,
@@ -75,21 +83,20 @@ module.exports.getSync = async (req, res, next) => {
           management: row['관리기관명'] || null,
           phoneNum: row['전화번호'] || null,
           openHour: row['개방시간'] || null,
-          x: result.x,
-          y: result.y
+          x: x,
+          y: y
         });
         console.log(address);
       }
 
-      console.log(`${new Date().toLocaleString()} - request failed count : ${requestFailedCount}`);
-      console.log(`${new Date().toLocaleString()} - insert obj count : ${insertObj.length}`);
-
       // Insert to db
       const toilet = new toiletModel.Toilet();
-      const result = await toilet.create(insertObj);
+      const result = await toilet.create(insertObjectArray);
 
-      console.log(new Date().toTimeString());
-      console.log(result);
+      const endTime = new Date();
+
+      logger.info(`${[pair.region]} Succeed : ${insertObjectArray.length} / Duration : ${endTime - startTime}`);
+      logger.info(`${[pair.region]} Failed : ${failedAddressArray.length}`, {address: failedAddressArray});
     }
   } catch (err) {
     logger.error(err.message, createErrorMetaObj(err));
@@ -122,8 +129,6 @@ const mapApiRequest_Naver = async (address) => {
       y: y
     };
   } catch (err) {
-    console.error(address);
-    console.error(err);
     return false;
   }
 }
@@ -147,8 +152,6 @@ const mapApiRequest_Kakao = async (address) => {
       y: y
     };
   } catch (err) {
-    console.error(address);
-    console.error(err);
     return false;
   }
 }
