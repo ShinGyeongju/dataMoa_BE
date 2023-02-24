@@ -23,8 +23,6 @@ module.exports.getSync = async (req, res, next) => {
     }
   ];
 
-  logger.info(`Toilet data sync start !!! `);
-
   try {
     for (const pair of toiletRegionUrlPairs) {
       const startTime = new Date();
@@ -39,26 +37,36 @@ module.exports.getSync = async (req, res, next) => {
       const sheet = workbook.Sheets[sheetName];
       const jsonSheet = excel.utils.sheet_to_json(sheet);
 
-      logger.info(`${[pair.region]} Target : ${jsonSheet.length}`);
+      logger.info(`[${pair.region}] Target : ${jsonSheet.length}`);
 
+      // Create insert object
       // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
       const insertObjectArray = [];
       const failedAddressArray = [];
       for (const row of jsonSheet) {
-        const address = row['소재지도로명주소'] || row['소재지지번주소'];
+        const address_1 = row['소재지도로명주소'];
+        const address_2 = row['소재지지번주소'];
+        let currentAddress = address_1 || address_2
 
         let x = row['WGS84위도'];
         let y = row['WGS84경도'];
 
+        // X/Y 좌표가 없으면 API 요청
         if (!x || !y) {
           // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
-          let result = await mapApiRequest_Kakao(address);
+          let result = await mapApiRequest_Kakao(currentAddress);
+          result = result ? result : await mapApiRequest_Naver(currentAddress);
+
+          // 도로명주소가 실패하면 지번주소로 다시 시도
+          if (!result && address_2 && currentAddress === address_1) {
+            currentAddress = address_2;
+            result = await mapApiRequest_Kakao(currentAddress);
+            result = result ? result : await mapApiRequest_Naver(currentAddress);
+          }
+
           if (!result) {
-            result = await mapApiRequest_Naver(address);
-            if (!result) {
-              failedAddressArray.push(address);
-              continue;
-            }
+            failedAddressArray.push(currentAddress);
+            continue;
           }
 
           x = result.x;
@@ -79,24 +87,25 @@ module.exports.getSync = async (req, res, next) => {
           category: category,
           name: row['화장실명'] || '',
           region: pair.region,
-          address: address || '',
+          address: currentAddress,
           management: row['관리기관명'] || null,
           phoneNum: row['전화번호'] || null,
           openHour: row['개방시간'] || null,
           x: x,
           y: y
         });
-        console.log(address);
       }
 
       // Insert to db
       const toilet = new toiletModel.Toilet();
       const result = await toilet.create(insertObjectArray);
 
+      console.log(result);
+
       const endTime = new Date();
 
-      logger.info(`${[pair.region]} Succeed : ${insertObjectArray.length} / Duration : ${endTime - startTime}`);
-      logger.info(`${[pair.region]} Failed : ${failedAddressArray.length}`, {address: failedAddressArray});
+      logger.info(`[${pair.region}] Succeed : ${insertObjectArray.length} / Duration : ${endTime - startTime} ms`);
+      logger.info(`[${pair.region}] Failed : ${failedAddressArray.length}`, {address: failedAddressArray});
     }
   } catch (err) {
     logger.error(err.message, createErrorMetaObj(err));
