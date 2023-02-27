@@ -22,7 +22,7 @@ module.exports.Toilet = class Toilet {
     }
 
     insertObj.forEach(row => {
-      querySql += `(${row.category}, '${stringValidator(row.name)}', '${row.region}', '${row.address}', '${stringValidator(row.management)}', '${row.phoneNum}', '${row.openHour}', ${row.x}, ${row.y}),`;
+      querySql += `(${row.category}, '{${stringValidator(row.name)}}', '${row.region}', '${row.address}', '${stringValidator(row.management)}', '${row.phoneNum}', '${row.openHour}', ${row.x}, ${row.y}),`;
     });
 
     return toiletDB.query(querySql.slice(0, -1));

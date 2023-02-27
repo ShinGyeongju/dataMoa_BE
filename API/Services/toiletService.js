@@ -12,15 +12,16 @@ module.exports.getToilet = (req, res, next) => {
 
 module.exports.getSync = async (req, res, next) => {
   const toiletRegionUrlPairs = [{
-      region: '서울특별시',
-      url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6110000&sidoCodeEx=6110000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
-    }, {
-      region: '부산광역시',
-      url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6260000&sidoCodeEx=6260000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
-    }, {
-      region: '대구광역시',
-      url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6270000&sidoCodeEx=6270000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
-    }
+    //   region: '서울특별시',
+    //   url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6110000&sidoCodeEx=6110000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
+    // }, {
+    region: '부산광역시',
+    url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6260000&sidoCodeEx=6260000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
+  }
+    // }, {
+    //   region: '대구광역시',
+    //   url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6270000&sidoCodeEx=6270000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
+    // }
   ];
 
   try {
@@ -43,13 +44,29 @@ module.exports.getSync = async (req, res, next) => {
       // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
       const insertObjectArray = [];
       const failedAddressArray = [];
+      let previousAddress = '';
+      let failCount = 0;
+      let successCount = 0;
       for (const row of jsonSheet) {
         const address_1 = row['소재지도로명주소'];
         const address_2 = row['소재지지번주소'];
-        let currentAddress = address_1 || address_2
+        let currentAddress = address_1 || address_2;
 
-        let x = row['WGS84위도'];
-        let y = row['WGS84경도'];
+        // 직전에 실패한 주소와 현재의 주소가 같으면 넘어간다.
+        if (failedAddressArray.at(-1) === address_1 || failedAddressArray.at(-1) === address_2) {
+          failCount++;
+          continue;
+        }
+        // 직전에 성공한 주소와 현재의 주소가 같으면 이름만 추가
+        if (previousAddress === currentAddress) {
+          insertObjectArray.at(-1).name += `, ${row['화장실명']}`;
+          successCount++;
+          continue;
+        }
+        previousAddress = currentAddress;
+
+        let x = row['WGS84경도'];
+        let y = row['WGS84위도'];
 
         // X/Y 좌표가 없으면 API 요청
         if (!x || !y) {
@@ -66,6 +83,7 @@ module.exports.getSync = async (req, res, next) => {
 
           if (!result) {
             failedAddressArray.push(currentAddress);
+            previousAddress = '';
             continue;
           }
 
@@ -85,7 +103,7 @@ module.exports.getSync = async (req, res, next) => {
 
         insertObjectArray.push({
           category: category,
-          name: row['화장실명'] || '',
+          name: row['화장실명'],
           region: pair.region,
           address: currentAddress,
           management: row['관리기관명'] || null,
@@ -96,16 +114,15 @@ module.exports.getSync = async (req, res, next) => {
         });
       }
 
+      console.log(insertObjectArray);
       // Insert to db
       const toilet = new toiletModel.Toilet();
       const result = await toilet.create(insertObjectArray);
 
-      console.log(result);
-
       const endTime = new Date();
 
-      logger.info(`[${pair.region}] Succeed : ${insertObjectArray.length} / Duration : ${endTime - startTime} ms`);
-      logger.info(`[${pair.region}] Failed : ${failedAddressArray.length}`, {address: failedAddressArray});
+      logger.info(`[${pair.region}] Succeed : ${insertObjectArray.length + successCount} / Duration : ${endTime - startTime} ms`);
+      logger.info(`[${pair.region}] Failed : ${failedAddressArray.length + failCount}`, {address: failedAddressArray});
     }
   } catch (err) {
     logger.error(err.message, createErrorMetaObj(err));
