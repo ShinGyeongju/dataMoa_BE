@@ -24,6 +24,8 @@ module.exports.getSync = async (req, res, next) => {
     // }
   ];
 
+  let totalToiletCount = 0;
+
   try {
     for (const pair of toiletRegionUrlPairs) {
       const startTime = new Date();
@@ -47,9 +49,10 @@ module.exports.getSync = async (req, res, next) => {
       let previousAddress = '';
       let failCount = 0;
       let successCount = 0;
+
       for (const row of jsonSheet) {
-        const address_1 = row['소재지도로명주소'];
-        const address_2 = row['소재지지번주소'];
+        let address_1 = row['소재지도로명주소'];
+        let address_2 = row['소재지지번주소'];
         let currentAddress = address_1 || address_2;
 
         // 직전에 실패한 주소와 현재의 주소가 같으면 넘어간다.
@@ -65,30 +68,21 @@ module.exports.getSync = async (req, res, next) => {
         }
         previousAddress = currentAddress;
 
-        let x = row['WGS84경도'];
-        let y = row['WGS84위도'];
+        // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
+        let result = await mapApiRequest_Kakao(currentAddress);
+        result = result ? result : await mapApiRequest_Naver(currentAddress);
 
-        // X/Y 좌표가 없으면 API 요청
-        if (!x || !y) {
-          // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
-          let result = await mapApiRequest_Kakao(currentAddress);
+        // 도로명주소가 실패하면 지번주소로 다시 시도
+        if (!result && address_2 && currentAddress === address_1) {
+          currentAddress = address_2;
+          result = await mapApiRequest_Kakao(currentAddress);
           result = result ? result : await mapApiRequest_Naver(currentAddress);
+        }
 
-          // 도로명주소가 실패하면 지번주소로 다시 시도
-          if (!result && address_2 && currentAddress === address_1) {
-            currentAddress = address_2;
-            result = await mapApiRequest_Kakao(currentAddress);
-            result = result ? result : await mapApiRequest_Naver(currentAddress);
-          }
-
-          if (!result) {
-            failedAddressArray.push(currentAddress);
-            previousAddress = '';
-            continue;
-          }
-
-          x = result.x;
-          y = result.y;
+        if (!result) {
+          failedAddressArray.push(currentAddress);
+          previousAddress = '';
+          continue;
         }
 
         const categoryStr = row['구분'];
@@ -105,31 +99,37 @@ module.exports.getSync = async (req, res, next) => {
           category: category,
           name: row['화장실명'],
           region: pair.region,
-          address: currentAddress,
+          address: result.address || null,
+          road_address: result.roadAddress || null,
           management: row['관리기관명'] || null,
           phoneNum: row['전화번호'] || null,
           openHour: row['개방시간'] || null,
-          x: x,
-          y: y
+          x: result.x,
+          y: result.y
         });
       }
 
-      console.log(insertObjectArray);
       // Insert to db
       const toilet = new toiletModel.Toilet();
-      const result = await toilet.create(insertObjectArray);
+      //const result = await toilet.create(insertObjectArray);
+      const toiletCreate = toilet.create.bind(toilet);
+      const result = await toiletCreate(insertObjectArray);
+      console.log(result);
+      totalToiletCount += insertObjectArray.length + successCount;
 
       const endTime = new Date();
 
       logger.info(`[${pair.region}] Succeed : ${insertObjectArray.length + successCount} / Duration : ${endTime - startTime} ms`);
       logger.info(`[${pair.region}] Failed : ${failedAddressArray.length + failCount}`, {address: failedAddressArray});
     }
+
+    const response = createResponseObj({totalToiletCount: totalToiletCount}, 'ok', true);
+
+    res.status(200).json(response);
   } catch (err) {
     logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
-
-  res.json({test: true});
 }
 
 // Map api request
@@ -148,11 +148,13 @@ const mapApiRequest_Naver = async (address) => {
       }
     });
     const {addresses} = await response.json();
-    const {x, y} = addresses[0];
+    const {x, y, roadAddress, jibunAddress} = addresses[0];
 
     return {
       x: x,
-      y: y
+      y: y,
+      address: jibunAddress,
+      roadAddress: roadAddress
     };
   } catch (err) {
     return false;
@@ -171,11 +173,13 @@ const mapApiRequest_Kakao = async (address) => {
       headers: {'Authorization': `KakaoAK ${apiKeyConfig.kakaoMap}`}
     });
     const {documents} = await response.json();
-    const {x, y} = documents[0];
+    const {x, y, address, road_address} = documents[0];
 
     return {
       x: x,
-      y: y
+      y: y,
+      address: address.address_name,
+      roadAddress: road_address.address_name
     };
   } catch (err) {
     return false;
