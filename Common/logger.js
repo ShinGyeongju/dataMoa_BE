@@ -8,7 +8,7 @@ module.exports.init = () => {
   // Custom format
   const customTransportFormat_MongoDB_Info = winston.format.combine(
     winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss', alias: 'timestamp_kr'}),
-    winston.format.metadata({fillWith: ['timestamp_kr', 'address']}),
+    winston.format.metadata({fillWith: ['timestamp_kr', 'result']}),
     winston.format.json()
   );
 

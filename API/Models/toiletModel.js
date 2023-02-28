@@ -32,15 +32,31 @@ module.exports.Toilet = class Toilet {
     }
   }
 
-  async create(insertObj) {
-    let querySql = 'INSERT INTO tb_toilet (toilet_category_id, toilet_name, toilet_region, toilet_address, toilet_road_address, management_agency, phone_number, open_hour, wsg84_x, wsg84_y) VALUES ';
+  createTempTable() {
+    return toiletDB.query('CREATE TABLE tb_toilet_temp (LIKE tb_toilet);');
+  }
 
+  dropTempTable() {
+    return toiletDB.query('DROP TABLE IF EXISTS tb_toilet_temp;\n');
+  }
 
+  insertToTemp(insertObj) {
+    let querySql = 'INSERT INTO tb_toilet_temp (toilet_id, toilet_category_id, toilet_name, toilet_region, toilet_address, toilet_road_address, management_agency, phone_number, open_hour, wsg84_x, wsg84_y, created_at) VALUES ';
 
     insertObj.forEach(row => {
-      querySql += `(${row.category}, '{${this.stringValidator(row.name)}}', '${row.region}', '${row.address}', '${row.road_address}', '${this.stringValidator(row.management)}', '${row.phoneNum}', '${this.openHourValidator(row.openHour)}', ${row.x}, ${row.y}),`;
+      querySql += `(uuid_generate_v4(), ${row.category}, '{${this.stringValidator(row.name)}}', '${row.region}', '${row.address}', '${row.road_address}', '${this.stringValidator(row.management)}', '${row.phoneNum}', '${this.openHourValidator(row.openHour)}', ${row.x}, ${row.y}, now()),`;
     });
 
     return toiletDB.query(querySql.slice(0, -1));
   }
+
+  truncateTable() {
+    return toiletDB.query('TRUNCATE TABLE tb_toilet;');
+  }
+
+  copyTable() {
+    return toiletDB.query('INSERT INTO tb_toilet SELECT * FROM tb_toilet_temp;');
+  }
+
+
 }

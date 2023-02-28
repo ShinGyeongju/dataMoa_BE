@@ -51,7 +51,7 @@ module.exports.Voc = class Voc {
   constructor() {
   }
 
-  async create(vocObject) {
+  create(vocObject) {
     return datamoaDB.query(`
       INSERT INTO tb_voc (page_id, voc_category_id, voc_content)
       VALUES (

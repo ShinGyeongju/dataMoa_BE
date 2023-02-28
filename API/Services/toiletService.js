@@ -1,7 +1,7 @@
 const logger = require('../../Common/logger').toiletLogger;
 const toiletModel = require('../Models/toiletModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
-const {apiKeyConfig} = require('../../Common/config');
+const {apiConfig, toiletDownloadConfig} = require('../../Common/config');
 const excel = require('xlsx');
 
 
@@ -11,23 +11,16 @@ module.exports.getToilet = (req, res, next) => {
 }
 
 module.exports.getSync = async (req, res, next) => {
-  const toiletRegionUrlPairs = [{
-    //   region: '서울특별시',
-    //   url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6110000&sidoCodeEx=6110000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
-    // }, {
-    region: '부산광역시',
-    url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6260000&sidoCodeEx=6260000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
-  }
-    // }, {
-    //   region: '대구광역시',
-    //   url: 'https://www.localdata.go.kr/lif/etcDataDownload.do?localCodeEx=6270000&sidoCodeEx=6270000&sigunguCodeEx=&opnSvcIdEx=12_04_01_E&startDateEx=&endDateEx=&fileType=xlsx&opnSvcNmEx=%25EA%25B3%25B5%25EC%25A4%2591%25ED%2599%2594%25EC%259E%25A5%25EC%258B%25A4%25EC%25A0%2595%25EB%25B3%25B4'
-    // }
-  ];
+  const toilet = new toiletModel.Toilet();
 
   let totalToiletCount = 0;
+  const totalStartTime = new Date();
 
   try {
-    for (const pair of toiletRegionUrlPairs) {
+    // Create temp table
+    const tempResult = await toilet.createTempTable();
+
+    for (const pair of toiletDownloadConfig) {
       const startTime = new Date();
 
       // Excel download from url
@@ -40,16 +33,14 @@ module.exports.getSync = async (req, res, next) => {
       const sheet = workbook.Sheets[sheetName];
       const jsonSheet = excel.utils.sheet_to_json(sheet);
 
-      logger.info(`[${pair.region}] Target : ${jsonSheet.length}`);
-
       // Create insert object
-      // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
       const insertObjectArray = [];
       const failedAddressArray = [];
       let previousAddress = '';
       let failCount = 0;
       let successCount = 0;
 
+      // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
       for (const row of jsonSheet) {
         let address_1 = row['소재지도로명주소'];
         let address_2 = row['소재지지번주소'];
@@ -109,24 +100,46 @@ module.exports.getSync = async (req, res, next) => {
         });
       }
 
-      // Insert to db
-      const toilet = new toiletModel.Toilet();
-      //const result = await toilet.create(insertObjectArray);
-      const toiletCreate = toilet.create.bind(toilet);
-      const result = await toiletCreate(insertObjectArray);
-      console.log(result);
+      // Insert to tempDB
+      const insertResult = await toilet.insertToTemp(insertObjectArray);
+      console.log(insertResult);
       totalToiletCount += insertObjectArray.length + successCount;
 
       const endTime = new Date();
 
-      logger.info(`[${pair.region}] Succeed : ${insertObjectArray.length + successCount} / Duration : ${endTime - startTime} ms`);
-      logger.info(`[${pair.region}] Failed : ${failedAddressArray.length + failCount}`, {address: failedAddressArray});
+      const infoLogObject = {
+        region: pair.region,
+        targetCount: jsonSheet.length,
+        succeedCount: insertObjectArray.length + successCount,
+        failedCount: failedAddressArray.length + failCount,
+        failedAddressArray: failedAddressArray,
+        duration: `${endTime - startTime} ms`
+      }
+
+      logger.info('Toilet data loading...', {result: infoLogObject});
     }
 
-    const response = createResponseObj({totalToiletCount: totalToiletCount}, 'ok', true);
+    // Truncate table
+    const truncateResult = await toilet.truncateTable();
+    // Copy to table from temp table
+    const copyResult = truncateResult ? await toilet.copyTable() : false;
+    // Drop temp table
+    const dropResult = copyResult ? await toilet.dropTempTable() : false;
+
+    const totalEndTime = new Date();
+
+    const result = {
+      totalCount: totalToiletCount,
+      totalDuration: `${totalEndTime - totalStartTime} ms`
+    }
+
+    logger.info('Toilet data loaded', {result: result});
+
+    const response = createResponseObj(result, 'ok', true);
 
     res.status(200).json(response);
   } catch (err) {
+    await toilet.dropTempTable();
     logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
@@ -141,10 +154,10 @@ const mapApiRequest_Naver = async (address) => {
       count: 1
     });
 
-    const response = await fetch('https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?' + urlParam, {
+    const response = await fetch(apiConfig.naverMapUrl + '?' + urlParam, {
       headers: {
-        'X-NCP-APIGW-API-KEY-ID' : apiKeyConfig.naverMapId,
-        'X-NCP-APIGW-API-KEY' : apiKeyConfig.naverMapSecret
+        'X-NCP-APIGW-API-KEY-ID' : apiConfig.naverMapId,
+        'X-NCP-APIGW-API-KEY' : apiConfig.naverMapSecret
       }
     });
     const {addresses} = await response.json();
@@ -169,8 +182,8 @@ const mapApiRequest_Kakao = async (address) => {
       size: 1
     });
 
-    const response = await fetch('https://dapi.kakao.com/v2/local/search/address.json?' + urlParam, {
-      headers: {'Authorization': `KakaoAK ${apiKeyConfig.kakaoMap}`}
+    const response = await fetch(apiConfig.kakaoMapUrl + '?' + urlParam, {
+      headers: {'Authorization': `KakaoAK ${apiConfig.kakaoMap}`}
     });
     const {documents} = await response.json();
     const {x, y, address, road_address} = documents[0];
