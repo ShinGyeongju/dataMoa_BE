@@ -11,6 +11,19 @@ module.exports.getToilet = (req, res, next) => {
 }
 
 module.exports.getSync = async (req, res, next) => {
+  const result = await fetchToiletData();
+
+  if (result.totalCount > 0) {
+    const response = createResponseObj(result, 'ok', true);
+
+    res.status(200).json(response);
+  } else {
+    next(result);
+  }
+}
+
+
+const fetchToiletData = async () => {
   const toilet = new toiletModel.Toilet();
 
   let totalToiletCount = 0;
@@ -60,20 +73,30 @@ module.exports.getSync = async (req, res, next) => {
         previousAddress = currentAddress;
 
         // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
-        let result = await mapApiRequest_Kakao(currentAddress);
-        result = result ? result : await mapApiRequest_Naver(currentAddress);
+        let result = await geocodeApiRequest_Kakao(currentAddress);
+        result = result ? result : await geocodeApiRequest_Naver(currentAddress);
 
         // 도로명주소가 실패하면 지번주소로 다시 시도
         if (!result && address_2 && currentAddress === address_1) {
           currentAddress = address_2;
-          result = await mapApiRequest_Kakao(currentAddress);
-          result = result ? result : await mapApiRequest_Naver(currentAddress);
+          result = await geocodeApiRequest_Kakao(currentAddress);
+          result = result ? result : await geocodeApiRequest_Naver(currentAddress);
         }
 
+        // 모두 실패하면 넘어간다.
         if (!result) {
           failedAddressArray.push(currentAddress);
           previousAddress = '';
           continue;
+        }
+
+        // 지번이나 도로명 주소 중, 하나라도 Null이면 Reverse Geocode API 요청
+        if (!result.address || !result.roadAddress) {
+          const addressResult = await reverseGeocodeApiRequest_Naver(result.x, result.y);
+          if (addressResult) {
+            result.address = addressResult.address;
+            result.roadAddress = addressResult.roadAddress;
+          }
         }
 
         const categoryStr = row['구분'];
@@ -102,7 +125,7 @@ module.exports.getSync = async (req, res, next) => {
 
       // Insert to tempDB
       const insertResult = await toilet.insertToTemp(insertObjectArray);
-      console.log(insertResult);
+
       totalToiletCount += insertObjectArray.length + successCount;
 
       const endTime = new Date();
@@ -116,7 +139,7 @@ module.exports.getSync = async (req, res, next) => {
         duration: `${endTime - startTime} ms`
       }
 
-      logger.info('Toilet data loading...', {result: infoLogObject});
+      logger.info(`[${toiletDownloadConfig.indexOf(pair) + 1}/${toiletDownloadConfig.length}] Toilet data loading...`, {result: infoLogObject});
     }
 
     // Truncate table
@@ -135,18 +158,18 @@ module.exports.getSync = async (req, res, next) => {
 
     logger.info('Toilet data loaded', {result: result});
 
-    const response = createResponseObj(result, 'ok', true);
-
-    res.status(200).json(response);
+    return result;
   } catch (err) {
     await toilet.dropTempTable();
     logger.error(err.message, createErrorMetaObj(err));
-    next(err);
+
+    return err;
   }
 }
+module.exports.fetchToiletData = fetchToiletData;
 
 // Map api request
-const mapApiRequest_Naver = async (address) => {
+const geocodeApiRequest_Naver = async (address) => {
   try {
     const urlParam = new URLSearchParams({
       query: address,
@@ -154,45 +177,100 @@ const mapApiRequest_Naver = async (address) => {
       count: 1
     });
 
-    const response = await fetch(apiConfig.naverMapUrl + '?' + urlParam, {
+    const response = await fetch(apiConfig.naverMapGeocodeUrl + '?' + urlParam, {
       headers: {
         'X-NCP-APIGW-API-KEY-ID' : apiConfig.naverMapId,
         'X-NCP-APIGW-API-KEY' : apiConfig.naverMapSecret
       }
     });
     const {addresses} = await response.json();
-    const {x, y, roadAddress, jibunAddress} = addresses[0];
+
+    if (addresses.length === 0) {
+      return false;
+    }
 
     return {
-      x: x,
-      y: y,
-      address: jibunAddress,
-      roadAddress: roadAddress
+      x: addresses[0].x,
+      y: addresses[0].y,
+      address: addresses[0].jibunAddress || '',
+      roadAddress: addresses[0].roadAddress || ''
     };
   } catch (err) {
     return false;
   }
 }
 
-const mapApiRequest_Kakao = async (address) => {
+const reverseGeocodeApiRequest_Naver = async (x, y) => {
   try {
     const urlParam = new URLSearchParams({
-      query: address,
+      coords: `${x},${y}`,
+      orders: 'addr,roadaddr',
+      output: 'json'
+    });
+
+    const response = await fetch(apiConfig.naverMapReverseGeocodeUrl + '?' + urlParam, {
+      headers: {
+        'X-NCP-APIGW-API-KEY-ID' : apiConfig.naverMapId,
+        'X-NCP-APIGW-API-KEY' : apiConfig.naverMapSecret
+      }
+    });
+    const {results} = await response.json();
+
+    const addrRegion = results[0].region;
+    const addrLand = results[0].land;
+
+    let addr = addrRegion.area1.name ? addrRegion.area1.name : '';
+    addr += addrRegion.area2.name ? ' ' + addrRegion.area2.name : '';
+    addr += addrRegion.area3.name ? ' ' + addrRegion.area3.name : '';
+    addr += addrRegion.area4.name ? ' ' + addrRegion.area4.name : '';
+    addr += addrLand.number1 ? ' ' + addrLand.number1 : '';
+    addr += addrLand.number2 ? '-' + addrLand.number2 : '';
+
+    const roadRegion = results[1].region;
+    const roadLand = results[1].land;
+
+    let road = roadRegion.area1.name ? roadRegion.area1.name : '';
+    road += roadRegion.area2.name ? ' ' + roadRegion.area2.name : '';
+    road += roadRegion.area3.name ? ' ' + roadRegion.area3.name : '';
+    road += roadRegion.area4.name ? ' ' + roadRegion.area4.name : '';
+    road += roadLand.name ? ' ' + roadLand.name : '';
+    road += roadLand.number1 ? ' ' + roadLand.number1 : '';
+    road += roadLand.number2 ? '-' + roadLand.number2 : '';
+
+    return {
+      address: addr,
+      roadAddress: road
+    };
+  } catch (err) {
+    return false;
+  }
+}
+
+const geocodeApiRequest_Kakao = async (addr) => {
+  try {
+    const urlParam = new URLSearchParams({
+      query: addr,
       page: 1,
       size: 1
     });
 
-    const response = await fetch(apiConfig.kakaoMapUrl + '?' + urlParam, {
-      headers: {'Authorization': `KakaoAK ${apiConfig.kakaoMap}`}
+    const response = await fetch(apiConfig.kakaoMapGeocodeUrl + '?' + urlParam, {
+      headers: {'Authorization': `KakaoAK ${apiConfig.kakaoMapKey}`}
     });
     const {documents} = await response.json();
-    const {x, y, address, road_address} = documents[0];
+
+    if (documents.length === 0) {
+      return false;
+    }
+
+    const address = documents[0].address ? documents[0].address.address_name : '';
+    const roadAddress = documents[0].road_address ? documents[0].road_address.address_name : '';
 
     return {
-      x: x,
-      y: y,
-      address: address.address_name,
-      roadAddress: road_address.address_name
+      x: documents[0].x,
+      y: documents[0].y,
+      address: address,
+      roadAddress: roadAddress
     };
   } catch (err) {
     return false;

@@ -36,9 +36,11 @@ module.exports.init = () => {
   }
 
   module.exports.apiConfig = {
-    kakaoMapUrl: process.env.KAKAO_MAP_API_URL,
-    kakaoMap: process.env.KAKAKO_MAP_API_KEY,
-    naverMapUrl: process.env.NAVER_MAP_API_URL,
+    kakaoMapGeocodeUrl: process.env.KAKAO_MAP_GEOCODE_API_URL,
+    kakaoMapReverseGeocodeUrl: process.env.KAKAO_MAP_REVERSE_GEOCODE_API_URL,
+    kakaoMapKey: process.env.KAKAO_MAP_API_KEY,
+    naverMapGeocodeUrl: process.env.NAVER_MAP_GEOCODE_API_URL,
+    naverMapReverseGeocodeUrl: process.env.NAVER_MAP_REVERSE_GEOCODE_API_URL,
     naverMapId: process.env.NAVER_MAP_API_ID,
     naverMapSecret: process.env.NAVER_MAP_API_SECRET
   }
