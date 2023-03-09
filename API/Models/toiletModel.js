@@ -37,7 +37,7 @@ module.exports.Toilet = class Toilet {
   }
 
   dropTempTable() {
-    return toiletDB.query('DROP TABLE IF EXISTS tb_toilet_temp;\n');
+    return toiletDB.query('DROP TABLE IF EXISTS tb_toilet_temp;');
   }
 
   insertToTemp(insertObj) {

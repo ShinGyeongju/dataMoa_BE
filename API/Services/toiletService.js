@@ -62,8 +62,6 @@ module.exports.getMapInfo = async (req, res, next) => {
         }
       });
 
-    console.log(responseResult);
-
     const response = createResponseObj(responseResult, 'ok', true);
 
     res.status(200).json(response);
@@ -95,7 +93,15 @@ const fetchToiletData = async () => {
       const workbook = excel.read(data);
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const jsonSheet = excel.utils.sheet_to_json(sheet);
+      const jsonSheet = excel.utils.sheet_to_json(sheet)
+        // 도로명 및 지번 주소로 정렬
+        .sort((a, b) => {
+          if (a['소재지도로명주소'] > b['소재지도로명주소']) return 1;
+          if (b['소재지도로명주소'] > a['소재지도로명주소']) return -1;
+          if (a['소재지지번주소'] > b['소재지지번주소']) return 1;
+          if (b['소재지지번주소'] > a['소재지지번주소']) return -1;
+          return 0;
+        });
 
       // Create insert object
       const insertObjectArray = [];
