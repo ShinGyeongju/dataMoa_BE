@@ -22,6 +22,57 @@ module.exports.getSync = async (req, res, next) => {
   }
 }
 
+module.exports.getMapInfo = async (req, res, next) => {
+  try {
+    const params = req.query;
+
+    if (!params.location_lat || !params.location_lng || !params.sw_lat || !params.sw_lng || !params.ne_lat || !params.ne_lng) {
+      const response = createResponseObj({}, 'invalid query', false);
+      res.status(400).json(response);
+      return;
+    }
+
+    const toilet = new toiletModel.Toilet();
+    const {rows} = await toilet.readByLatLng(params);
+
+    const responseResult = rows
+      // 현재 위치와 화장실 위치의 직선 거리 추가
+      .map(row => {
+        row.distance = Math.sqrt(Math.pow(row.wsg84_x - parseFloat(params.location_lng), 2) + Math.pow(row.wsg84_y - parseFloat(params.location_lat), 2));
+        return row;
+      })
+      // 직선 거리 기준으로 오름차순으로 정렬
+      .sort((a, b) => {
+        return a.distance - b.distance;
+      })
+      // 응답 객체 반환
+      .map(row => {
+        return {
+          id: row.toilet_id,
+          category: row.toilet_category_name,
+          nameArray: row.toilet_name,
+          region: row.toilet_region,
+          address: row.toilet_address,
+          roadAddress: row.toilet_road_address,
+          management: row.management_agency,
+          phoneNumber: row.phone_number,
+          openTime: row.open_hour,
+          lat: row.wsg84_y,
+          lng: row.wsg84_x
+        }
+      });
+
+    console.log(responseResult);
+
+    const response = createResponseObj(responseResult, 'ok', true);
+
+    res.status(200).json(response);
+  } catch (err) {
+    logger.error(err.message, createErrorMetaObj(err));
+    next(err);
+  }
+}
+
 
 const fetchToiletData = async () => {
   const toilet = new toiletModel.Toilet();

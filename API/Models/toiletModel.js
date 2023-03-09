@@ -58,5 +58,12 @@ module.exports.Toilet = class Toilet {
     return toiletDB.query('INSERT INTO tb_toilet SELECT * FROM tb_toilet_temp;');
   }
 
+  readByLatLng(params) {
+    //return toiletDB.query('SELECT * FROM tb_toilet LEFT OUTER JOIN tb_toilet_category ON tb_toilet.toilet_category_id = tb_toilet_category.toilet_category_id ORDER BY RANDOM() LIMIT 10;');
+
+    return toiletDB.query(`SELECT *
+       FROM tb_toilet AS toilet LEFT OUTER JOIN tb_toilet_category AS category ON toilet.toilet_category_id = category.toilet_category_id
+       WHERE toilet.wsg84_y BETWEEN ${params.sw_lat} AND ${params.ne_lat} AND toilet.wsg84_x BETWEEN ${params.sw_lng} AND ${params.ne_lng};`);
+  }
 
 }
