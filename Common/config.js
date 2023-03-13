@@ -9,7 +9,8 @@ module.exports.init = () => {
 
   module.exports.serverConfig = {
     env: process.env.NODE_ENV,
-    port: process.env.HTTP_PORT
+    port: process.env.HTTP_PORT,
+    apiAuthSecret: process.env.API_AUTH_SECRET
   }
 
   module.exports.mongoConfig_Log = {
