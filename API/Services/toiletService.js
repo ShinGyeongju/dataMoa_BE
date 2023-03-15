@@ -27,7 +27,7 @@ module.exports.getMapInfo = async (req, res, next) => {
     const params = req.query;
 
     if (!params.location_lat || !params.location_lng || !params.sw_lat || !params.sw_lng || !params.ne_lat || !params.ne_lng) {
-      const response = createResponseObj({}, 'invalid query', false);
+      const response = createResponseObj({}, '[10021] Invalid query', false);
       res.status(400).json(response);
       return;
     }
@@ -72,6 +72,7 @@ module.exports.getMapInfo = async (req, res, next) => {
 }
 
 
+// Fetch from url
 const fetchToiletData = async () => {
   const toilet = new toiletModel.Toilet();
 
@@ -106,6 +107,7 @@ const fetchToiletData = async () => {
       // Create insert object
       const insertObjectArray = [];
       const failedAddressArray = [];
+      let currentNameArray = [];
       let previousAddress = '';
       let failCount = 0;
       let successCount = 0;
@@ -123,10 +125,15 @@ const fetchToiletData = async () => {
         }
         // 직전에 성공한 주소와 현재의 주소가 같으면 이름만 추가
         if (previousAddress === currentAddress) {
-          insertObjectArray.at(-1).name += `, ${row['화장실명']}`;
-          successCount++;
+          // 같은 주소의 화장실 이름이 중복되지 않을 경우만 이름 추가
+          if (!currentNameArray.includes(row['화장실명'])) {
+            currentNameArray.push(row['화장실명']);
+            insertObjectArray.at(-1).name += `, "${row['화장실명']}"`;
+            successCount++;
+          }
           continue;
         }
+
         previousAddress = currentAddress;
 
         // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
@@ -156,6 +163,8 @@ const fetchToiletData = async () => {
           }
         }
 
+        currentNameArray = [row['화장실명']] ;
+
         const categoryStr = row['구분'];
         let category = 4;
         if (categoryStr.includes('공중')) {
@@ -168,7 +177,7 @@ const fetchToiletData = async () => {
 
         insertObjectArray.push({
           category: category,
-          name: row['화장실명'],
+          name: `"${row['화장실명']}"`,
           region: pair.region,
           address: result.address || null,
           road_address: result.roadAddress || null,
@@ -204,7 +213,7 @@ const fetchToiletData = async () => {
     // Copy to table from temp table
     const copyResult = truncateResult ? await toilet.copyTable() : false;
     // Drop temp table
-    const dropResult = copyResult ? await toilet.dropTempTable() : false;
+    //const dropResult = copyResult ? await toilet.dropTempTable() : false;
 
     const totalEndTime = new Date();
 
@@ -217,13 +226,16 @@ const fetchToiletData = async () => {
 
     return result;
   } catch (err) {
-    await toilet.dropTempTable();
     logger.error(err.message, createErrorMetaObj(err));
 
     return err;
+  } finally {
+    // Drop temp table
+    await toilet.dropTempTable();
   }
 }
 module.exports.fetchToiletData = fetchToiletData;
+
 
 // Map api request
 const geocodeApiRequest_Naver = async (address) => {
