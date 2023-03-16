@@ -108,6 +108,7 @@ const fetchToiletData = async () => {
       const insertObjectArray = [];
       const failedAddressArray = [];
       let currentNameArray = [];
+      let previousLatLng = '';
       let previousAddress = '';
       let failCount = 0;
       let successCount = 0;
@@ -123,7 +124,7 @@ const fetchToiletData = async () => {
           failCount++;
           continue;
         }
-        // 직전에 성공한 주소와 현재의 주소가 같으면 이름만 추가
+        // 직전에 성공한 주소와 현재의 주소가 같을 경우 이름만 추가
         if (previousAddress === currentAddress) {
           // 같은 주소의 화장실 이름이 중복되지 않을 경우만 이름 추가
           if (!currentNameArray.includes(row['화장실명'])) {
@@ -151,6 +152,15 @@ const fetchToiletData = async () => {
         if (!result) {
           failedAddressArray.push(currentAddress);
           previousAddress = '';
+          failCount++;
+          continue;
+        }
+
+        // X/Y 좌표가 같은 화장실은 이름만 추가
+        if (previousLatLng === result.x + '|' + result.y) {
+          currentNameArray.push(row['화장실명']);
+          insertObjectArray.at(-1).name += `, "${row['화장실명']}"`;
+          successCount++;
           continue;
         }
 
@@ -163,6 +173,7 @@ const fetchToiletData = async () => {
           }
         }
 
+        previousLatLng = result.x + '|' + result.y;
         currentNameArray = [row['화장실명']] ;
 
         const categoryStr = row['구분'];
@@ -187,20 +198,22 @@ const fetchToiletData = async () => {
           x: result.x,
           y: result.y
         });
+
+        successCount++;
       }
 
       // Insert to tempDB
       const insertResult = await toilet.insertToTemp(insertObjectArray);
 
-      totalToiletCount += insertObjectArray.length + successCount;
+      totalToiletCount += successCount;
 
       const endTime = new Date();
 
       const infoLogObject = {
         region: pair.region,
         targetCount: jsonSheet.length,
-        succeedCount: insertObjectArray.length + successCount,
-        failedCount: failedAddressArray.length + failCount,
+        succeedCount: successCount,
+        failedCount: failCount,
         failedAddressArray: failedAddressArray,
         duration: `${endTime - startTime} ms`
       }
