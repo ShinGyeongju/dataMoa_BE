@@ -26,12 +26,12 @@ services:
       POSTGRES_USER: ${POSTGRES_DATAMOA_USER}
       POSTGRES_PASSWORD: ${POSTGRES_DATAMOA_PASSWORD}
     volumes:
-      - postgres_datamoa:/var/lib/postgresql/data
       - ./SQL/postgres_datamoa_init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_datamoa:/var/lib/postgresql/data
 
   node_server:
     container_name: "Node_Server"
-    image: "node:19-alpine"
+    image: "node:19"
     restart: always
     env_file:
       - ./config.env
@@ -42,6 +42,7 @@ services:
     ports:
       - 80:${HTTP_PORT}
     environment:
+
       NODE_ENV: ${NODE_ENV}
     volumes:
       - ./:/usr/src/app
