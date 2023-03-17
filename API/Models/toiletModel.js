@@ -1,8 +1,17 @@
 const {toiletDB} = require('../../Loader/postgresLoader');
+const {toiletDownloadConfig} = require('../../Common/config');
 
 // Model
 module.exports.Toilet = class Toilet {
   constructor() {
+  }
+
+  nullValidator = (str) => {
+    if (!str) {
+      return null;
+    }
+
+    return "'" + str + "'";
   }
 
   stringValidator = (str) => {
@@ -32,6 +41,17 @@ module.exports.Toilet = class Toilet {
     }
   }
 
+  phoneNumberValidator = (phoneNumber, region) => {
+    if (!phoneNumber) {
+      return null;
+    } else if (phoneNumber.length === 8 && !phoneNumber.includes('-')) {
+      return phoneNumber.substring(0, 4) + '-' + phoneNumber.substring(4, 8);
+    } else if (phoneNumber.length === 7 && !phoneNumber.includes('-')) {
+      const regionNumber = toiletDownloadConfig.filter(item => item.region === region)[0].number;
+      return regionNumber + '-' + phoneNumber.substring(0, 3) + '-' + phoneNumber.substring(3, 7);
+    }
+  }
+
   createTempTable() {
     return toiletDB.query('CREATE TABLE tb_toilet_temp (LIKE tb_toilet);');
   }
@@ -44,7 +64,13 @@ module.exports.Toilet = class Toilet {
     let querySql = 'INSERT INTO tb_toilet_temp (toilet_id, toilet_category_id, toilet_name, toilet_region, toilet_address, toilet_road_address, management_agency, phone_number, open_hour, wsg84_x, wsg84_y, created_at) VALUES ';
 
     insertObj.forEach(row => {
-      querySql += `(uuid_generate_v4(), ${row.category}, '{${this.stringValidator(row.name)}}', '${row.region}', '${row.address}', '${row.road_address}', '${this.stringValidator(row.management)}', '${row.phoneNum}', '${this.openHourValidator(row.openHour)}', ${row.x}, ${row.y}, now()),`;
+      const address = this.nullValidator(row.address);
+      const roadAddress = this.nullValidator(row.road_address);
+      const management = this.nullValidator(this.stringValidator(row.management));
+      const phoneNumber = this.nullValidator(this.phoneNumberValidator(row.phoneNum, row.region));
+      const openHour = this.nullValidator(this.openHourValidator(row.openHour));
+
+      querySql += `(uuid_generate_v4(), ${row.category}, '{${this.stringValidator(row.name)}}', '${row.region}', ${address}, ${roadAddress}, ${management}, ${phoneNumber}, ${openHour}, ${row.x}, ${row.y}, now()),`;
     });
 
     return toiletDB.query(querySql.slice(0, -1));
