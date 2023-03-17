@@ -47,23 +47,23 @@ module.exports.init = () => {
   }
 
   module.exports.toiletDownloadConfig = [
-    {region: '서울특별시', url: process.env.TOILET_EXCEL_URL_SEOUL},
-    {region: '부산광역시', url: process.env.TOILET_EXCEL_URL_BUSAN},
-    {region: '대구광역시', url: process.env.TOILET_EXCEL_URL_DAEGU},
-    {region: '인천광역시', url: process.env.TOILET_EXCEL_URL_INCHEON},
-    {region: '광주광역시', url: process.env.TOILET_EXCEL_URL_GWANGJU},
-    {region: '대전광역시', url: process.env.TOILET_EXCEL_URL_DAEJEON},
-    {region: '울관광역시', url: process.env.TOILET_EXCEL_URL_ULSAN},
-    {region: '세종특별자치시', url: process.env.TOILET_EXCEL_URL_SEJONG},
-    {region: '경기도', url: process.env.TOILET_EXCEL_URL_GYEONGGI},
-    {region: '강원도', url: process.env.TOILET_EXCEL_URL_GANGWON},
-    {region: '충청북도', url: process.env.TOILET_EXCEL_URL_CHUNGBUK},
-    {region: '충청남도', url: process.env.TOILET_EXCEL_URL_CHUNGNAM},
-    {region: '전라북도', url: process.env.TOILET_EXCEL_URL_JEONBUK},
-    {region: '전라남도', url: process.env.TOILET_EXCEL_URL_JEONNAM},
-    {region: '경상북도', url: process.env.TOILET_EXCEL_URL_GYEONGBUK},
-    {region: '경상남도', url: process.env.TOILET_EXCEL_URL_GYEONGNAM},
-    {region: '제주특별자치도', url: process.env.TOILET_EXCEL_URL_JEJU}
+    {region: '서울특별시', url: process.env.TOILET_EXCEL_URL_SEOUL, number: '02'},
+    {region: '부산광역시', url: process.env.TOILET_EXCEL_URL_BUSAN, number: '051'},
+    {region: '대구광역시', url: process.env.TOILET_EXCEL_URL_DAEGU, number: '053'},
+    {region: '인천광역시', url: process.env.TOILET_EXCEL_URL_INCHEON, number: '032'},
+    {region: '광주광역시', url: process.env.TOILET_EXCEL_URL_GWANGJU, number: '062'},
+    {region: '대전광역시', url: process.env.TOILET_EXCEL_URL_DAEJEON, number: '042'},
+    {region: '울관광역시', url: process.env.TOILET_EXCEL_URL_ULSAN, number: '052'},
+    {region: '세종특별자치시', url: process.env.TOILET_EXCEL_URL_SEJONG, number: '044'},
+    {region: '경기도', url: process.env.TOILET_EXCEL_URL_GYEONGGI, number: '031'},
+    {region: '강원도', url: process.env.TOILET_EXCEL_URL_GANGWON, number: '033'},
+    {region: '충청북도', url: process.env.TOILET_EXCEL_URL_CHUNGBUK, number: '043'},
+    {region: '충청남도', url: process.env.TOILET_EXCEL_URL_CHUNGNAM, number: '041'},
+    {region: '전라북도', url: process.env.TOILET_EXCEL_URL_JEONBUK, number: '063'},
+    {region: '전라남도', url: process.env.TOILET_EXCEL_URL_JEONNAM, number: '061'},
+    {region: '경상북도', url: process.env.TOILET_EXCEL_URL_GYEONGBUK, number: '054'},
+    {region: '경상남도', url: process.env.TOILET_EXCEL_URL_GYEONGNAM, number: '055'},
+    {region: '제주특별자치도', url: process.env.TOILET_EXCEL_URL_JEJU, number: '064'}
   ]
 
 }
