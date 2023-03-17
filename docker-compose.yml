@@ -7,10 +7,10 @@ services:
     env_file:
       - ./config.env
     ports:
-      - "${MONGO_LOG_PORT}:${MONGO_LOG_PORT}"
+      - ${MONGO_LOG_PORT}:${MONGO_LOG_PORT}
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "${MONGO_LOG_USER}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_LOG_PASSWORD}"
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_LOG_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_LOG_PASSWORD}
     volumes:
       - mongo_log:/data/db
 
@@ -20,11 +20,11 @@ services:
     env_file:
       - ./config.env
     ports:
-      - "${POSTGRES_DATAMOA_PORT}:${POSTGRES_DATAMOA_PORT}"
+      - ${POSTGRES_DATAMOA_PORT}:${POSTGRES_DATAMOA_PORT}
     environment:
-      POSTGRES_DB: "${POSTGRES_DATAMOA_DATABASE}"
-      POSTGRES_USER: "${POSTGRES_DATAMOA_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_DATAMOA_PASSWORD}"
+      POSTGRES_DB: ${POSTGRES_DATAMOA_DATABASE}
+      POSTGRES_USER: ${POSTGRES_DATAMOA_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DATAMOA_PASSWORD}
     volumes:
       - postgres_datamoa:/var/lib/postgresql/data
       - ./SQL/postgres_datamoa_init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -40,9 +40,9 @@ services:
       - db_mongo_log
       - db_postgres_datamoa
     ports:
-      - "80:${HTTP_PORT}"
+      - 80:${HTTP_PORT}
     environment:
-      NODE_ENV: "${NODE_ENV}"
+      NODE_ENV: ${NODE_ENV}
     volumes:
       - ./:/usr/src/app
     command: bash -c "npm install && npm start"
