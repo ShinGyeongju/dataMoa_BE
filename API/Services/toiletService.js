@@ -115,8 +115,8 @@ const fetchToiletData = async () => {
 
       // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
       for (const row of jsonSheet) {
-        let address_1 = row['소재지도로명주소'];
-        let address_2 = row['소재지지번주소'];
+        let address_1 = row['소재지지번주소'];
+        let address_2 = row['소재지도로명주소'];
         let currentAddress = address_1 || address_2;
 
         // 직전에 실패한 주소와 현재의 주소가 같으면 넘어간다.
@@ -141,7 +141,7 @@ const fetchToiletData = async () => {
         let result = await geocodeApiRequest_Kakao(currentAddress);
         result = result ? result : await geocodeApiRequest_Naver(currentAddress);
 
-        // 도로명주소가 실패하면 지번주소로 다시 시도
+        // 지번주소가 실패하면 도로명주소로 다시 시도
         if (!result && address_2 && currentAddress === address_1) {
           currentAddress = address_2;
           result = await geocodeApiRequest_Kakao(currentAddress);
