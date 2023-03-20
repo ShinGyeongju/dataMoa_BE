@@ -4,8 +4,6 @@ services:
   db_mongo_log:
     container_name: "Log_DB"
     image: "mongo:6.0.4"
-    env_file:
-      - ./config.env
     ports:
       - ${MONGO_LOG_PORT}:${MONGO_LOG_PORT}
     environment:
@@ -17,8 +15,6 @@ services:
   db_postgres_datamoa:
     container_name: "Datamoa_DB"
     image: "postgres:15-alpine"
-    env_file:
-      - ./config.env
     ports:
       - ${POSTGRES_DATAMOA_PORT}:${POSTGRES_DATAMOA_PORT}
     environment:
@@ -41,8 +37,8 @@ services:
       - db_postgres_datamoa
     ports:
       - 80:${HTTP_PORT}
+      - 443:${HTTPS_PORT}
     environment:
-
       NODE_ENV: ${NODE_ENV}
     volumes:
       - ./:/usr/src/app

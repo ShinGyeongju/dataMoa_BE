@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const loader = require('./Loader/loader');
@@ -15,25 +16,35 @@ const startServer = async () => {
     minVersion: 'TLSv1.2'
   }
 
-  const app = express();
+  const httpApp = express();
+  const httpsApp = express();
 
   // Initialize
-  const isInitialized = await loader.init(app);
-  if (!isInitialized) {
+  const httpInitialized = await loader.httpInit(httpApp);
+  const httpsInitialized = await loader.httpsInit(httpsApp);
+  if (!httpInitialized && !httpsInitialized) {
     console.log('Initialize failed');
     return;
   }
 
   // Route
-  router(app);
+  router(httpsApp);
 
   // Listen
-  https.createServer(httpsOptions, app).listen(serverConfig.port, (err) => {
+  http.createServer(httpApp).listen(serverConfig.httpPort, (err) => {
     if (err) {
       console.error(err);
     }
 
-    console.log(`Server is listening at [https://localhost:${serverConfig.port}]`);
+    console.log(`Server is listening on [http://localhost:${serverConfig.httpPort}]`);
+  });
+
+  https.createServer(httpsOptions, httpsApp).listen(serverConfig.httpsPort, (err) => {
+    if (err) {
+      console.error(err);
+    }
+
+    console.log(`Server is listening on [https://localhost:${serverConfig.httpsPort}]`);
   });
 
 }

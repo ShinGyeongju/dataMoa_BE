@@ -6,7 +6,7 @@ const postgresLoader = require('./postgresLoader');
 const toiletScheduler = require('../Scheduler/toiletScheduler');
 
 
-module.exports.init = async (app) => {
+module.exports.httpsInit = async (app) => {
   try {
     await expressLoader(app);
 
@@ -14,6 +14,19 @@ module.exports.init = async (app) => {
     await postgresLoader.dbConnect(postgresLoader.toiletDB);
 
     await toiletScheduler.init();
+
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+module.exports.httpInit = async (app) => {
+  try {
+    app.use((req, res, next) => {
+      res.redirect(`https://${req.headers.host}${req.url}`);
+    })
 
     return true;
   } catch (err) {
