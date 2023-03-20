@@ -65,7 +65,7 @@ module.exports.createErrorMetaObj = (err) => {
 module.exports.defaultPage = (req, res, next) => {
   //console.log('default pages');
 
-  res.sendfile(path.join(__dirname, '../API/Views/Build/index.html'));
+  res.sendfile(path.join(__dirname, '../Views/build/index.html'));
 }
 
 // Default error handler
