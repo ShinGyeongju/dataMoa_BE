@@ -45,3 +45,4 @@ const server = startServer();
 // TODO: 화장실 지번 주소가 없어 도로명 주소를 사용하여 좌표를 얻었는데, 도로명 주소가 정확하지 않은 경우.
 // TODO: MongoDB 데이터 양 관리 필요.
 // TODO: Init SQL에서 [create database if not exists] 기능 구현 필요.
+// TODO: 80번 포트로 들어오는 요청을 443으로 리다이렉트 처리해야됨.

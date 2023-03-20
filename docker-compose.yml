@@ -46,7 +46,7 @@ services:
       NODE_ENV: ${NODE_ENV}
     volumes:
       - ./:/usr/src/app
-    command: bash -c "npm install && npm start"
+    command: bash -c "ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && npm install && npm start"
 
 volumes:
   mongo_log:

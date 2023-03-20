@@ -36,7 +36,6 @@ module.exports.dbConnect = async (pgClient) => {
   });
 }
 
-
 // TODO: Pool을 바로 제공하지 않고, Query할 떄 마다 Pool의 Client를 제공하도록 수정 필요.
 module.exports.datamoaDB = postgresClient_Datamoa;
 module.exports.toiletDB = postgresClient_Toilet;

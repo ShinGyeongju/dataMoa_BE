@@ -36,6 +36,7 @@ module.exports.init = () => {
       },
       dbName: 'Logs',
       collection: collection,
+      expireAfterSeconds: 604800,
       format: format
     });
   }
