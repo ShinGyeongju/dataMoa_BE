@@ -4,10 +4,6 @@ const {createResponseObj, createErrorMetaObj} = require('./commonService');
 
 
 // Service
-module.exports.getDatamoa = (req, res, next) => {
-  res.sendfile();
-}
-
 module.exports.getCategory = async (req, res, next) => {
   try {
     const pageCategory = new datamoaModel.PageCategory();

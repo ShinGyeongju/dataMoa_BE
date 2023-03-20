@@ -18,6 +18,6 @@ module.exports = async (app) => {
   app.use(express.json());
 
   // Static file
-  app.use(express.static(path.join(__dirname, '../API/Views/Public')));
+  app.use(express.static(path.join(__dirname, '../API/Views/Build')));
 
 }

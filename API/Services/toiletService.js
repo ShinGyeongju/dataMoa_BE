@@ -6,10 +6,6 @@ const excel = require('xlsx');
 
 
 // Service
-module.exports.getToilet = (req, res, next) => {
-  res.sendfile();
-}
-
 module.exports.getSync = async (req, res, next) => {
   const result = await fetchToiletData();
 

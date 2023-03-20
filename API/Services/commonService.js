@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const {serverConfig} = require('../../Common/config');
+const path = require("path");
 
 
 // HMAC Authorization
@@ -62,10 +63,9 @@ module.exports.createErrorMetaObj = (err) => {
 
 // Default page
 module.exports.defaultPage = (req, res, next) => {
-  //res.status(404)
-  console.log('default pages');
+  //console.log('default pages');
 
-  res.redirect('/');
+  res.sendfile(path.join(__dirname, '../API/Views/Build/index.html'));
 }
 
 // Default error handler
