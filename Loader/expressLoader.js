@@ -9,7 +9,7 @@ const cspOptions = {
   directives: {
     ...helmet.contentSecurityPolicy.getDefaultDirectives(),
     "script-src": ["'self'", "*.fontawesome.com", "*.naver.com", "*.pstatic.net"],
-    "connect-src": ["'self'", "*.datamoa.kr", "*.fontawesome.com", "*.naver.com", "*.navercorp.com", "*.kakao.com"],
+    "connect-src": ["'self'", "datamoa.kr", "*.fontawesome.com", "*.naver.com", "*.navercorp.com", "*.kakao.com"],
     "img-src": ["'self'", "data:", "*.pstatic.net", "*.navercorp.com"]
   }
 };
