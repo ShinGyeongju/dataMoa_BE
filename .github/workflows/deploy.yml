@@ -10,7 +10,7 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
-      - name: [Script] git pull
+      - name: Script - git pull
         uses: appleboy/ssh-action@master
         with:
           password: ${{ secrets.SSH_PASSWORD }}
@@ -18,7 +18,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           port: ${{ secrets.SSH_PORT }}
           script: cd /home/sinkj98/datamoa_be/ && git checkout . && git pull
-      - name: [Script] server reload
+      - name: Script - server reload
         uses: appleboy/ssh-action@master
         with:
           password: ${{ secrets.SSH_PASSWORD }}
