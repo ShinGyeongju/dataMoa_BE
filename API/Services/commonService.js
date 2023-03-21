@@ -6,20 +6,27 @@ const path = require("path");
 // HMAC Authorization
 module.exports.HMACAuthorization = (req, res, next) => {
   try {
-    const authHeader = req.header('Authorization').split(' ');
-    const currentTime = Date.now();
-
-    if (authHeader[0].toUpperCase() !== 'HMAC') {
-      const response = this.createResponseObj({}, '[10010] Authentication failed - Invalid identifier', false);
+    const authHeader = req.header('Authorization');
+    if (!authHeader) {
+      const response = this.createResponseObj({}, '[10010] Authentication failed - Authorization not found', false);
       res.status(401).json(response);
       return;
     }
 
-    const authHeaderValue = authHeader[1].split(':');
+    const splitAuthHeader = authHeader.split(' ');
+    const currentTime = Date.now();
+
+    if (splitAuthHeader[0].toUpperCase() !== 'HMAC') {
+      const response = this.createResponseObj({}, '[10011] Authentication failed - Invalid identifier', false);
+      res.status(401).json(response);
+      return;
+    }
+
+    const authHeaderValue = splitAuthHeader[1].split(':');
     const interval = currentTime - authHeaderValue[0];
 
     if (interval > 300000) {
-      const response = this.createResponseObj({}, '[10011] Authentication failed - Invalid epoch time', false);
+      const response = this.createResponseObj({}, '[10012] Authentication failed - Invalid epoch time', false);
       res.status(401).json(response);
       return;
     }
@@ -29,9 +36,9 @@ module.exports.HMACAuthorization = (req, res, next) => {
     hmac.update(req.method);
     hmac.update(req._parsedUrl.pathname);
     const digest = hmac.digest('hex');
-    console.log(digest);
+
     if (digest !== authHeaderValue[1]) {
-      const response = this.createResponseObj({}, '[10012] Authentication failed - Invalid hash code', false);
+      const response = this.createResponseObj({}, '[10013] Authentication failed - Invalid hash code', false);
       res.status(401).json(response);
       return;
     }
@@ -39,7 +46,7 @@ module.exports.HMACAuthorization = (req, res, next) => {
     next();
   } catch (err) {
     console.log(err);
-    const response = this.createResponseObj({}, '[10013] Authentication failed', false);
+    const response = this.createResponseObj({}, '[10014] Authentication failed', false);
     res.status(401).json(response);
   }
 }

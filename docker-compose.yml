@@ -45,7 +45,8 @@ services:
     command: bash -c "npm install pm2 -g &&
       ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime &&
       npm install &&
-      pm2 start server.js"
+      pm2 start server.js &&
+      pm2 log"
 
 volumes:
   mongo_log:
