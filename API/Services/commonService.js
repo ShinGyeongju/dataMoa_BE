@@ -32,12 +32,14 @@ module.exports.HMACAuthorization = (req, res, next) => {
     }
 
     const hmac = crypto.createHmac('sha256', serverConfig.apiAuthSecret);
+
     hmac.update(authHeaderValue[0]);
     hmac.update(req.method);
-    hmac.update(req._parsedUrl.pathname);
+    hmac.update(req.baseUrl + req._parsedUrl.pathname);
     const digest = hmac.digest('hex');
 
     if (digest !== authHeaderValue[1]) {
+      console.log(req);
       const response = this.createResponseObj({}, '[10013] Authentication failed - Invalid hash code', false);
       res.status(401).json(response);
       return;
