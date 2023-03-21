@@ -44,7 +44,7 @@ const startServer = async () => {
       console.error(err);
     }
 
-    process.send('ready');
+    //process.send('ready');
     console.log(`Server is listening on [https://localhost:${serverConfig.httpsPort}]`);
   });
 

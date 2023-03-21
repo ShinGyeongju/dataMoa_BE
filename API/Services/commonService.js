@@ -5,10 +5,10 @@ const path = require("path");
 
 // HMAC Authorization
 module.exports.HMACAuthorization = (req, res, next) => {
-  const authHeader = req.header('Authorization').split(' ');
-  const currentTime = Date.now();
-
   try {
+    const authHeader = req.header('Authorization').split(' ');
+    const currentTime = Date.now();
+
     if (authHeader[0].toUpperCase() !== 'HMAC') {
       const response = this.createResponseObj({}, '[10010] Authentication failed - Invalid identifier', false);
       res.status(401).json(response);
