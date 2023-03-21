@@ -17,7 +17,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           port: ${{ secrets.SSH_PORT }}
-          script: cd datamoa_be/ && git checkout . && git pull
+          script: cd /home/sinkj98/datamoa_be/ && git checkout . && git pull
       - name: [Script] server reload
         uses: appleboy/ssh-action@master
         with:
@@ -25,4 +25,4 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           port: ${{ secrets.PORT }}
-          script: cd datamoa_be/ && docker exec Node_Server pm2 reload server.js
+          script: cd /home/sinkj98/datamoa_be/ && docker exec Node_Server pm2 reload server.js
