@@ -5,11 +5,11 @@ const logger = require('../../Common/logger');
 
 
 module.exports = (app) => {
-  // Datamoa page
-  app.use('/', logger.datamoaLogger.httpLogger, datamoaRouter);
-
   // Toilet page
   app.use('/toilet/', logger.toiletLogger.httpLogger, toiletRouter);
+
+  // Datamoa page
+  app.use('/', logger.datamoaLogger.httpLogger, datamoaRouter);
 
   // TODO: 복권방 위치 찾기 page 추가 예정.
   //
