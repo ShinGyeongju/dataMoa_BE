@@ -1,16 +1,24 @@
-name: depoly
+name: deploy
 
 on:
   push:
     branches: [main]
     
 jobs:
-  Depoly:
+  Deploy:
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v3
-      - name: Script - git pull
+      - name: Copy config
+        uses: appleboy/ssh-action@master
+        with:
+          password: ${{ secrets.SSH_PASSWORD }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          script: cd /home/sinkj98/datamoa_be/ && cp config.env .backup.config.env
+      - name: Git pull
         uses: appleboy/ssh-action@master
         with:
           password: ${{ secrets.SSH_PASSWORD }}
@@ -18,7 +26,15 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           port: ${{ secrets.SSH_PORT }}
           script: cd /home/sinkj98/datamoa_be/ && git checkout . && git pull
-      - name: Script - server reload
+      - name: Paste config
+        uses: appleboy/ssh-action@master
+        with:
+          password: ${{ secrets.SSH_PASSWORD }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          script: cd /home/sinkj98/datamoa_be/ && mv -f .backup.config.env config.env
+      - name: Server reload
         uses: appleboy/ssh-action@master
         with:
           password: ${{ secrets.SSH_PASSWORD }}
