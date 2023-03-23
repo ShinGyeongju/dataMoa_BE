@@ -39,7 +39,6 @@ module.exports.HMACAuthorization = (req, res, next) => {
     const digest = hmac.digest('hex');
 
     if (digest !== authHeaderValue[1]) {
-      console.log(req);
       const response = this.createResponseObj({}, '[10013] Authentication failed - Invalid hash code', false);
       res.status(401).json(response);
       return;

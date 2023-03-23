@@ -6,5 +6,8 @@ package-lock.json
 logs/
 *.log
 
+# Config
+dev.config.env
+
 # Cert
 *.pem

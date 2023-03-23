@@ -3,12 +3,16 @@ const path = require('path');
 
 
 module.exports.init = () => {
+  const configPath = process.env.NODE_ENV  === 'prod'
+    ? path.join(__dirname, '../config.env')
+    : path.join(__dirname, '../dev.config.env');
+
   dotenv.config({
-    path: path.join(__dirname, '../config.env')
+    path: path.join(configPath)
   });
 
+
   module.exports.serverConfig = {
-    env: process.env.NODE_ENV,
     httpPort: process.env.HTTP_PORT,
     httpsPort: process.env.HTTPS_PORT,
     apiAuthSecret: process.env.API_AUTH_SECRET

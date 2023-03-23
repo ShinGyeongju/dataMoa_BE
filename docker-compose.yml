@@ -39,7 +39,7 @@ services:
       - 80:${HTTP_PORT}
       - 443:${HTTPS_PORT}
     environment:
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: "PRODUCTION"
     volumes:
       - ./:/usr/src/app
     command: bash -c "ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime &&

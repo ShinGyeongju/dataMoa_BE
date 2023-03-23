@@ -76,7 +76,7 @@ module.exports.init = () => {
     }
   });
 
-  if (serverConfig.env !== 'dev') {
+  if (serverConfig.env === 'prod') {
     datamoaLogger.add(createTransportObj_MongoDB('info', 'datamoa', customTransportFormat_MongoDB_Info));
     datamoaLogger.add(createTransportObj_MongoDB('error', 'datamoa_error', customTransportFormat_MongoDB_Error));
     toiletLogger.add(createTransportObj_MongoDB('info', 'toilet', customTransportFormat_MongoDB_Info));

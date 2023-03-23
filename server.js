@@ -50,10 +50,15 @@ const startServer = async () => {
 
 }
 
-const server = startServer();
+process.env.NODE_ENV =
+  ( process.env.NODE_ENV && process.env.NODE_ENV.trim().toLowerCase().includes('prod') )
+    ? 'prod'
+    : 'dev';
+
+
+startServer();
 
 
 // TODO: 화장실 지번 주소를 우선적으로 사용하여 좌표를 얻었는데, 도로명 주소가 잘못 됐고 지번 주소가 정확한 경우.
 // TODO: 화장실 지번 주소가 없어 도로명 주소를 사용하여 좌표를 얻었는데, 도로명 주소가 정확하지 않은 경우.
 // TODO: Init SQL에서 [create database if not exists] 기능 구현 필요.
-// TODO: CI/CD 구현 필요.
