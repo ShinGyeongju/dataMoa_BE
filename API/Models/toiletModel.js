@@ -76,6 +76,14 @@ module.exports.Toilet = class Toilet {
     return toiletDB.query(querySql.slice(0, -1));
   }
 
+  enableTrigger() {
+    return toiletDB.query('ALTER TABLE tb_toilet ENABLE TRIGGER trig_update_time;');
+  }
+
+  disableTrigger() {
+    return toiletDB.query('ALTER TABLE tb_toilet DISABLE TRIGGER trig_update_time;');
+  }
+
   truncateTable() {
     return toiletDB.query('TRUNCATE TABLE tb_toilet;');
   }
@@ -90,6 +98,10 @@ module.exports.Toilet = class Toilet {
     return toiletDB.query(`SELECT *
        FROM tb_toilet AS toilet LEFT OUTER JOIN tb_toilet_category AS category ON toilet.toilet_category_id = category.toilet_category_id
        WHERE toilet.wsg84_y BETWEEN ${params.sw_lat} AND ${params.ne_lat} AND toilet.wsg84_x BETWEEN ${params.sw_lng} AND ${params.ne_lng};`);
+  }
+
+  updateToManual() {
+    return toiletDB.query('UPDATE tb_toilet_manual AS manual SET toilet_id = toilet.toilet_id FROM tb_toilet AS toilet WHERE manual.toilet_address = toilet.toilet_address AND manual.toilet_road_address = toilet.toilet_road_address;');
   }
 
 }

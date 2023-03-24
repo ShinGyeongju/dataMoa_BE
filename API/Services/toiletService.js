@@ -217,12 +217,14 @@ const fetchToiletData = async () => {
       logger.info(`[${toiletDownloadConfig.indexOf(pair) + 1}/${toiletDownloadConfig.length}] Toilet data loading...`, {result: infoLogObject});
     }
 
+    // Disable trigger
+    const disableResult = await toilet.disableTrigger();
     // Truncate table
-    const truncateResult = await toilet.truncateTable();
+    const truncateResult = disableResult ? await toilet.truncateTable() : false;
     // Copy to table from temp table
     const copyResult = truncateResult ? await toilet.copyTable() : false;
-    // Drop temp table
-    //const dropResult = copyResult ? await toilet.dropTempTable() : false;
+    // Sync manual table
+    const updateResult = copyResult ? await toilet.updateToManual() : false;
 
     const totalEndTime = new Date();
 
@@ -239,12 +241,13 @@ const fetchToiletData = async () => {
 
     return err;
   } finally {
+    // Enable trigger
+    await toilet.enableTrigger();
     // Drop temp table
     await toilet.dropTempTable();
   }
 }
 module.exports.fetchToiletData = fetchToiletData;
-
 
 // Map api request
 const geocodeApiRequest_Naver = async (address) => {
