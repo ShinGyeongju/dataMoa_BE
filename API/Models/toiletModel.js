@@ -22,9 +22,12 @@ module.exports.Toilet = class Toilet {
         resultStr += item + "''";
       });
       return resultStr.slice(0, -2);
-    } else {
-      return str;
     }
+    if (str.includes('`')) return str.replaceAll('`', '');
+    if (str.includes('@')) return str.replaceAll('@', '');
+    if (str.includes('?')) return str.replaceAll('?', '');
+
+    return str;
   }
 
   openHourValidator = (openHour) => {

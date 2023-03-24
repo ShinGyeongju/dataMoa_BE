@@ -61,4 +61,3 @@ startServer();
 
 // TODO: Init SQL에서 [create database if not exists] 기능 구현 필요.
 // TODO: 문의 요청이 오면 지정된 메일을 자동으로 전송해주는 기능 구현 필요.
-// TODO: 화장실 이름에 불필요한 특수문자 제거 기능 구현 필요.
