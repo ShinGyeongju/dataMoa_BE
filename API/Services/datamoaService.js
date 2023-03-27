@@ -79,7 +79,6 @@ module.exports.postVoc = async (req, res, next) => {
       subject: `[VoC] ${resultRow.page_name} - ${resultRow.voc_category_name}`,
       text: resultRow.voc_content
     });
-    console.log(sendResult);
 
     const response = createResponseObj(resultRow, 'ok', true);
 
@@ -127,15 +126,21 @@ const gmailTransporter = nodemailer.createTransport({
 });
 
 const createSendMailOption = (sendOption) => {
-
-}
-
-const sendVocMail = (sendOption) => {
-  gmailTransporter.sendMail({
+  return {
     from: `"TeamDK" <${mailAuth.gmailUser}>`,
     to: sendOption.toEMail,
     subject: sendOption.subject,
     text: sendOption.text,
     html: `<b>${sendOption.text}</b>`,
+  }
+}
+
+const sendVocMail = (sendOption) => {
+  gmailTransporter.sendMail(createSendMailOption(sendOption), (error, info) => {
+    if (error) {
+      logger.error('Mail sent failed', createErrorMetaObj(error));
+      return;
+    }
+    logger.info('Mail sent successfully', {result: info.response});
   });
 }

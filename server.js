@@ -49,12 +49,6 @@ const startServer = async () => {
   });
 }
 
-process.env.NODE_ENV =
-  ( process.env.NODE_ENV && process.env.NODE_ENV.trim().toLowerCase().includes('prod') )
-    ? 'prod'
-    : 'dev';
-
-
 startServer();
 
 

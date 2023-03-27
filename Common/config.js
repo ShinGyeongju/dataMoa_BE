@@ -3,6 +3,11 @@ const path = require('path');
 
 
 module.exports.init = () => {
+  process.env.NODE_ENV =
+    ( process.env.NODE_ENV && process.env.NODE_ENV.trim().toLowerCase().includes('prod') )
+      ? 'prod'
+      : 'dev';
+
   const configPath = process.env.NODE_ENV  === 'prod'
     ? path.join(__dirname, '../config.env')
     : path.join(__dirname, '../dev.config.env');
