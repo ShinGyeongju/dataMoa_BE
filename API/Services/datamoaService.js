@@ -1,6 +1,8 @@
 const logger = require('../../Common/logger').datamoaLogger;
 const datamoaModel = require('../Models/datamoaModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
+const {mailAuth} = require('../../Common/config');
+const nodemailer = require('nodemailer');
 
 
 // Service
@@ -67,9 +69,19 @@ module.exports.getSubpage = async (req, res, next) => {
 module.exports.postVoc = async (req, res, next) => {
   try {
     const voc = new datamoaModel.Voc();
-    const result = await voc.create(req.body);
+    const {rows} = await voc.create(req.body);
+    const readResult = await voc.readById(rows[0].voc_id);
+    const resultRow = readResult.rows[0];
 
-    const response = createResponseObj(req.body, 'ok', true);
+    // Call by async
+    sendVocMail({
+      toEMail: 'datamoa.voc@gmail.com',
+      subject: `[VoC] ${resultRow.page_name} - ${resultRow.voc_category_name}`,
+      text: resultRow.voc_content
+    });
+    console.log(sendResult);
+
+    const response = createResponseObj(resultRow, 'ok', true);
 
     res.status(200).json(response);
   } catch (err) {
@@ -99,4 +111,31 @@ module.exports.getVocCategory = async (req, res, next) => {
     logger.error(err.message, createErrorMetaObj(err));
     next(err);
   }
+}
+
+
+// Send voc mail
+const gmailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: mailAuth.gmailUser,
+    pass: mailAuth.gmailPassword
+  },
+});
+
+const createSendMailOption = (sendOption) => {
+
+}
+
+const sendVocMail = (sendOption) => {
+  gmailTransporter.sendMail({
+    from: `"TeamDK" <${mailAuth.gmailUser}>`,
+    to: sendOption.toEMail,
+    subject: sendOption.subject,
+    text: sendOption.text,
+    html: `<b>${sendOption.text}</b>`,
+  });
 }

@@ -47,7 +47,6 @@ const startServer = async () => {
     //process.send('ready');
     console.log(`Server is listening on [https://localhost:${serverConfig.httpsPort}]`);
   });
-
 }
 
 process.env.NODE_ENV =
@@ -59,5 +58,4 @@ process.env.NODE_ENV =
 startServer();
 
 
-// TODO: Init SQL에서 [create database if not exists] 기능 구현 필요.
 // TODO: 문의 요청이 오면 지정된 메일을 자동으로 전송해주는 기능 구현 필요.

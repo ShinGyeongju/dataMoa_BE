@@ -57,7 +57,13 @@ module.exports.Voc = class Voc {
       VALUES (
         (SELECT page_id FROM tb_page WHERE page_url = '${vocObject.pageUrl}'), 
         ${vocObject.vocCategoryId}, 
-        '${vocObject.vocContent}')
+        '${vocObject.vocContent}') RETURNING *
     `);
+  }
+
+  readById(vocId) {
+    return datamoaDB.query(`SELECT voc.voc_id, page.page_url, page.page_name, page.page_url, category.voc_category_id, category.voc_category_name, voc.voc_content
+        FROM tb_voc AS voc LEFT OUTER JOIN tb_page AS page on page.page_id = voc.page_id LEFT OUTER JOIN tb_voc_category AS category on category.voc_category_id = voc.voc_category_id
+        WHERE voc.voc_id = '${vocId}';`);
   }
 }

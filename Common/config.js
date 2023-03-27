@@ -41,6 +41,11 @@ module.exports.init = () => {
     password: process.env.POSTGRES_TOILET_PASSWORD
   }
 
+  module.exports.mailAuth = {
+    gmailUser: process.env.GMAIL_USER,
+    gmailPassword: process.env.GMAIL_PASSWORD
+  }
+
   module.exports.apiConfig = {
     kakaoMapGeocodeUrl: process.env.KAKAO_MAP_GEOCODE_API_URL,
     kakaoMapReverseGeocodeUrl: process.env.KAKAO_MAP_REVERSE_GEOCODE_API_URL,
