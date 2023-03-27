@@ -74,6 +74,7 @@ module.exports.postVoc = async (req, res, next) => {
     const resultRow = readResult.rows[0];
 
     // Call by async
+    console.log(resultRow.voc_content);
     sendVocMail({
       toEMail: 'datamoa.voc@gmail.com',
       subject: `[VoC] ${resultRow.page_name} - ${resultRow.voc_category_name}`,
@@ -130,8 +131,7 @@ const createSendMailOption = (sendOption) => {
     from: `"TeamDK" <${mailAuth.gmailUser}>`,
     to: sendOption.toEMail,
     subject: sendOption.subject,
-    text: sendOption.text,
-    html: `<b>${sendOption.text}</b>`,
+    text: sendOption.text
   }
 }
 
