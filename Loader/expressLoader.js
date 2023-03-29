@@ -8,8 +8,8 @@ const cookieParser = require('cookie-parser');
 const cspOptions = {
   directives: {
     ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-    "script-src": ["'self'", "unsafe-inline", "*.fontawesome.com", "*.naver.com", "*.pstatic.net", "*.googletagmanager.com"],
-    "connect-src": ["'self'", "datamoa.kr", "*.fontawesome.com", "*.naver.com", "*.navercorp.com", "*.kakao.com"],
+    "script-src": ["'self'", "'sha256-WBVS3n2R2puYCpKTujNn/foCHXCXy/BW1LOLEGrpn0w='", "*.fontawesome.com", "*.naver.com", "*.pstatic.net", "*.googletagmanager.com"],
+    "connect-src": ["'self'", "datamoa.kr", "*.fontawesome.com", "*.naver.com", "*.navercorp.com", "*.kakao.com", "*.google-analytics.com"],
     "img-src": ["'self'", "data:", "*.pstatic.net", "*.navercorp.com"]
   }
 };
