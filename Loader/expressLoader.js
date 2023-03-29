@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const cspOptions = {
   directives: {
     ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-    "script-src": ["'self'", "*.fontawesome.com", "*.naver.com", "*.pstatic.net"],
+    "script-src": ["'self'", "*.fontawesome.com", "*.naver.com", "*.pstatic.net", "*.googletagmanager.com"],
     "connect-src": ["'self'", "datamoa.kr", "*.fontawesome.com", "*.naver.com", "*.navercorp.com", "*.kakao.com"],
     "img-src": ["'self'", "data:", "*.pstatic.net", "*.navercorp.com"]
   }
