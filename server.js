@@ -34,6 +34,7 @@ const startServer = async () => {
   http.createServer(httpApp).listen(serverConfig.httpPort, (err) => {
     if (err) {
       console.error(err);
+      return;
     }
 
     console.log(`Server is listening on [http://localhost:${serverConfig.httpPort}]`);
@@ -42,6 +43,7 @@ const startServer = async () => {
   https.createServer(httpsOptions, httpsApp).listen(serverConfig.httpsPort, (err) => {
     if (err) {
       console.error(err);
+      return;
     }
 
     //process.send('ready');
@@ -51,5 +53,3 @@ const startServer = async () => {
 
 startServer();
 
-
-// TODO: 문의 요청이 오면 지정된 메일을 자동으로 전송해주는 기능 구현 필요.

@@ -69,6 +69,24 @@ module.exports.getMapInfo = async (req, res, next) => {
 
 
 // Fetch from url
+const addressValidator = (address) => {
+  if (/[0-9]/.test(address)) {
+    const replaceAddr = address.replace(',', '').replace(/\(.*\)/g, '').trim();
+    const splitAddr = replaceAddr.split(' ').reverse();
+
+    for (const item of splitAddr.slice()) {
+      if (/[0-9]/.test(item)) {
+        break;
+      }
+      splitAddr.shift();
+    }
+
+    return splitAddr.reverse().join(' ');
+  } else {
+    return address;
+  }
+}
+
 const fetchToiletData = async () => {
   const toilet = new toiletModel.Toilet();
 
@@ -91,6 +109,15 @@ const fetchToiletData = async () => {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const jsonSheet = excel.utils.sheet_to_json(sheet)
+        .map(item => {
+          const address = item['소재지지번주소'];
+          const roadAddress = item['소재지도로명주소'];
+
+          item['소재지지번주소'] = address ? addressValidator(address) : address;
+          item['소재지도로명주소'] = roadAddress ? addressValidator(roadAddress) : roadAddress;
+
+          return item;
+        })
         // 도로명 및 지번 주소로 정렬
         .sort((a, b) => {
           if (a['소재지도로명주소'] > b['소재지도로명주소']) return 1;
@@ -101,7 +128,7 @@ const fetchToiletData = async () => {
         });
 
       // Create insert object
-      const insertObjectArray = [];
+      let insertObjectArray = [];
       const failedAddressArray = [];
       let currentNameArray = [];
       let previousLatLng = '';
@@ -134,14 +161,14 @@ const fetchToiletData = async () => {
         previousAddress = currentAddress;
 
         // 카카오맵에 시도 후, 실패하면 네이버맵에 시도
-        let result = await geocodeApiRequest_Kakao(currentAddress);
-        result = result ? result : await geocodeApiRequest_Naver(currentAddress);
+        let result = await geocodeApiRequest_Naver(currentAddress);
+        result = result ? result : await geocodeApiRequest_Kakao(currentAddress);
 
         // 지번주소가 실패하면 도로명주소로 다시 시도
         if (!result && address_2 && currentAddress === address_1) {
           currentAddress = address_2;
-          result = await geocodeApiRequest_Kakao(currentAddress);
-          result = result ? result : await geocodeApiRequest_Naver(currentAddress);
+          result = await geocodeApiRequest_Naver(currentAddress);
+          result = result ? result : await geocodeApiRequest_Kakao(currentAddress);
         }
 
         // 모두 실패하면 넘어간다.
@@ -198,8 +225,30 @@ const fetchToiletData = async () => {
         successCount++;
       }
 
+      const sortedInsertObjectArray = [];
+      insertObjectArray = insertObjectArray
+        .sort((a, b) => {
+          if (a.address > b.address) return 1;
+          if (b.address > a.address) return -1;
+          if (a.road_address > b.road_address) return 1;
+          if (b.road_address > a.road_address) return -1;
+          return 0;
+        });
+      // 주소가 중복될 경우 이름만 추가
+      insertObjectArray.forEach(item => {
+        const address_1 = item.address || '';
+        const address_2 = sortedInsertObjectArray.at(-1)?.address || '';
+        const roadAddress_1 = item.road_address || '';
+        const roadAddress_2 = sortedInsertObjectArray.at(-1)?.road_address || '';
+        if (address_1 === address_2 && roadAddress_1 === roadAddress_2) {
+          sortedInsertObjectArray.at(-1).name += `, ${item.name}`;
+        } else {
+          sortedInsertObjectArray.push(item);
+        }
+      });
+
       // Insert to tempDB
-      const insertResult = await toilet.insertToTemp(insertObjectArray);
+      const insertResult = await toilet.insertToTemp(sortedInsertObjectArray);
 
       totalToiletCount += successCount;
 
