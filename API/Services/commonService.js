@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const {serverConfig} = require('../../Common/config');
+const fs = require('fs');
 const path = require("path");
 
 
@@ -71,8 +72,6 @@ module.exports.createErrorMetaObj = (err) => {
 
 // Default page
 module.exports.defaultPage = (req, res, next) => {
-  //console.log('default pages');
-
   res.sendfile(path.join(__dirname, '../Views/build/index.html'));
 }
 
