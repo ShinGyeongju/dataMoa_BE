@@ -3,9 +3,14 @@ const toiletModel = require('../Models/toiletModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
 const {apiConfig, toiletDownloadConfig} = require('../../Common/config');
 const excel = require('xlsx');
+const path = require("path");
 
 
 // Service
+module.exports.getPage = (req, res, next) => {
+  res.sendfile(path.join(__dirname, '../Views/build/toilet/index.html'));
+}
+
 module.exports.getSync = async (req, res, next) => {
   const result = await fetchToiletData();
 
