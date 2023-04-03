@@ -1,6 +1,6 @@
 const logger = require('../../Common/logger').toiletLogger;
 const toiletModel = require('../Models/toiletModel');
-const {createResponseObj, createErrorMetaObj} = require('./commonService');
+const {createResponseObj, createErrorMetaObj, replaceHTML} = require('./commonService');
 const {apiConfig, toiletDownloadConfig} = require('../../Common/config');
 const excel = require('xlsx');
 const fs = require("fs");
@@ -12,38 +12,15 @@ module.exports.getPage = (req, res, next) => {
   let indexHTML = fs.readFileSync(path.join(__dirname, '../Views/build/index.html'), {
     encoding: "utf8"
   });
-  indexHTML = indexHTML.replace(/<head>[\s\S]*<\/head>/i, '<meta charset="UTF-8" />\n' +
-    '    <meta http-equiv="X-UA-Compatible" content="IE=edge" />\n' +
-    '    <link rel="icon" type="image/x-icon" href="./toilet_favicon.ico" />\n' +
-    '    <title>화장실 위치찾기</title>\n' +
-    '    <meta property="og:title" content="화장실 위치찾기" />\n' +
-    '    <meta property="og:url" content="https://datamoa.kr/toilet" />\n' +
-    '    <meta property="og:image" content="https://datamoa.kr/main_og_img.png" />\n' +
-    '    <meta\n' +
-    '      property="og:description"\n' +
-    '      content="내 주변 가장 가까운 화장실은 어디에 있을까?"\n' +
-    '    />\n' +
-    '    <script\n' +
-    '      async\n' +
-    '      src="https://www.googletagmanager.com/gtag/js?id=G-EVXG6BSL15"\n' +
-    '    ></script>\n' +
-    '    <script>\n' +
-    '      window.dataLayer = window.dataLayer || [];\n' +
-    '      function gtag() {\n' +
-    '        dataLayer.push(arguments);\n' +
-    '      }\n' +
-    '      gtag(\'js\', new Date());\n' +
-    '\n' +
-    '      gtag(\'config\', \'G-EVXG6BSL15\');\n' +
-    '    </script>\n' +
-    '    <script\n' +
-    '      src="https://kit.fontawesome.com/740f08e5f4.js"\n' +
-    '      crossorigin="anonymous"\n' +
-    '    ></script>\n' +
-    '    <script\n' +
-    '      type="text/javascript"\n' +
-    '      src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=%REACT_APP_NAVER_API_KEY%"\n' +
-    '    ></script>');
+
+  const option = {
+    icon: './toilet_favicon.ico',
+    title: '화장실 위치찾기',
+    url: 'https://datamoa.kr/toilet',
+    description: '내 주변 가장 가까운 화장실은 어디에 있을까?'
+  };
+
+  indexHTML = replaceHTML(indexHTML, option);
 
   res.contentType('text/html').status(200).send(indexHTML);
 }

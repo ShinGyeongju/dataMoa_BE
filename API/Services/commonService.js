@@ -53,6 +53,25 @@ module.exports.HMACAuthorization = (req, res, next) => {
   }
 }
 
+// Replace HTML value
+module.exports.replaceHTML = (html, option) => {
+  let r = html.replace(/<title>[\s\S]*<\/title>/i, `<title>${option.title}</title>`);
+
+  const iconIndex = r.indexOf('x-icon" href="') + 'x-icon" href="'.length;
+  r = r.substring(0, iconIndex) + option.icon + r.substring(r.indexOf('"', iconIndex), r.length);
+
+  const titleIndex= r.indexOf('og:title" content="') + 'og:title" content="'.length;
+  r = r.substring(0, titleIndex) + option.title + r.substring(r.indexOf('"', titleIndex), r.length);
+
+  const urlIndex = r.indexOf('og:url" content="') + 'og:url" content="'.length;
+  r = r.substring(0, urlIndex) + option.url + r.substring(r.indexOf('"', urlIndex), r.length);
+
+  const descriptionIndex = r.indexOf('content="', r.indexOf('og:description')) + 'content="'.length;
+  r = r.substring(0, descriptionIndex) + option.description + r.substring(r.indexOf('"', descriptionIndex), r.length);
+
+  return r;
+}
+
 // Default response object
 module.exports.createResponseObj = (result, message, success) => {
   return {
