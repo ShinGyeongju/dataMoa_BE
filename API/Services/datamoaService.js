@@ -3,14 +3,9 @@ const datamoaModel = require('../Models/datamoaModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
 const {mailAuth} = require('../../Common/config');
 const nodemailer = require('nodemailer');
-const path = require("path");
 
 
 // Service
-module.exports.getPage = (req, res, next) => {
-  res.sendfile(path.join(__dirname, '../Views/build/datamoa/index.html'));
-}
-
 module.exports.getCategory = async (req, res, next) => {
   try {
     const pageCategory = new datamoaModel.PageCategory();
