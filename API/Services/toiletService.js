@@ -1,6 +1,6 @@
 const logger = require('../../Common/logger').toiletLogger;
 const toiletModel = require('../Models/toiletModel');
-const {createResponseObj, createErrorMetaObj, replaceHTML} = require('./commonService');
+const {createResponseObj, createErrorMetaObj, joinHTML} = require('./commonService');
 const {apiConfig, toiletDownloadConfig} = require('../../Common/config');
 const excel = require('xlsx');
 const fs = require("fs");
@@ -9,20 +9,17 @@ const path = require("path");
 
 // Service
 module.exports.getPage = (req, res, next) => {
-  let indexHTML = fs.readFileSync(path.join(__dirname, '../Views/build/index.html'), {
-    encoding: "utf8"
+  const indexHTML = fs.readFileSync(path.join(__dirname, '../Views/build/index.html'), {
+    encoding: 'utf8'
   });
 
-  const option = {
-    icon: './toilet_favicon.ico',
-    title: '화장실 위치찾기',
-    url: 'https://datamoa.kr/toilet',
-    description: '내 주변 가장 가까운 화장실은 어디에 있을까?'
-  };
+  const toiletMeta = fs.readFileSync(path.join(__dirname, '../Views/build/meta/toilet.html'), {
+    encoding: 'utf8'
+  });
 
-  indexHTML = replaceHTML(indexHTML, option);
+  const responseHTML = joinHTML(indexHTML, toiletMeta);
 
-  res.contentType('text/html').status(200).send(indexHTML);
+  res.contentType('text/html').status(200).send(responseHTML);
 }
 
 module.exports.getSync = async (req, res, next) => {
