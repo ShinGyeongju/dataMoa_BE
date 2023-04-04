@@ -13,7 +13,7 @@ module.exports.getPage = (req, res, next) => {
     encoding: 'utf8'
   });
 
-  const toiletMeta = fs.readFileSync(path.join(__dirname, '../Views/build/meta/toilet.html'), {
+  const toiletMeta = fs.readFileSync(path.join(__dirname, '../Views/build/meta/toilet.txt'), {
     encoding: 'utf8'
   });
 

@@ -1,11 +1,27 @@
 const logger = require('../../Common/logger').datamoaLogger;
 const datamoaModel = require('../Models/datamoaModel');
-const {createResponseObj, createErrorMetaObj} = require('./commonService');
+const {createResponseObj, createErrorMetaObj, joinHTML} = require('./commonService');
 const {mailAuth} = require('../../Common/config');
 const nodemailer = require('nodemailer');
+const fs = require("fs");
+const path = require("path");
 
 
 // Service
+module.exports.getPage = (req, res, next) => {
+  const indexHTML = fs.readFileSync(path.join(__dirname, '../Views/build/index.html'), {
+    encoding: 'utf8'
+  });
+
+  const datamoaMeta = fs.readFileSync(path.join(__dirname, '../Views/build/meta/datamoa.txt'), {
+    encoding: 'utf8'
+  });
+
+  const responseHTML = joinHTML(indexHTML, datamoaMeta);
+
+  res.contentType('text/html').status(200).send(responseHTML);
+}
+
 module.exports.getCategory = async (req, res, next) => {
   try {
     const pageCategory = new datamoaModel.PageCategory();

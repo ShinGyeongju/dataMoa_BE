@@ -2,6 +2,7 @@ const datamoaService = require('../Services/datamoaService');
 const {HMACAuthorization} = require('../Services/commonService');
 const router = require('express').Router();
 
+router.get('/', datamoaService.getPage);
 router.get('/category', HMACAuthorization, datamoaService.getCategory);
 router.get('/subpage', HMACAuthorization, datamoaService.getSubpage);
 router.get('/subpage/:pageId', HMACAuthorization, datamoaService.getSubpage);
