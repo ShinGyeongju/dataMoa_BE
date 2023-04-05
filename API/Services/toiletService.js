@@ -8,20 +8,6 @@ const path = require("path");
 
 
 // Service
-module.exports.getPage = (req, res, next) => {
-  const indexHTML = fs.readFileSync(path.join(__dirname, '../Views/build/index.html'), {
-    encoding: 'utf8'
-  });
-
-  const toiletMeta = fs.readFileSync(path.join(__dirname, '../Views/build/meta/toilet.txt'), {
-    encoding: 'utf8'
-  });
-
-  const responseHTML = joinHTML(indexHTML, toiletMeta);
-
-  res.contentType('text/html').status(200).send(responseHTML);
-}
-
 module.exports.getSync = async (req, res, next) => {
   const result = await fetchToiletData();
 

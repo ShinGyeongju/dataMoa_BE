@@ -50,15 +50,12 @@ INSERT INTO tb_voc_category (voc_category_name) VALUES ('오류 제보');
 INSERT INTO tb_voc_category (voc_category_name) VALUES ('개선 및 제안');
 INSERT INTO tb_voc_category (voc_category_name) VALUES ('기타 문의');
 
-INSERT INTO tb_page_category (category_name) VALUES ('데이터모아');
 INSERT INTO tb_page_category (category_name) VALUES ('위치 찾기');
 
 INSERT INTO tb_page (category_id, page_name, page_url, page_description)
-VALUES (1, '소개', '/info', '데이터모아 소개 페이지입니다.');
+VALUES (1, '화장실 찾기', '/toilet', '화장실 위치 찾기 페이지입니다.');
 INSERT INTO tb_page (category_id, page_name, page_url, page_description)
-VALUES (2, '화장실 찾기', '/toilet', '화장실 위치 찾기 페이지입니다.');
-INSERT INTO tb_page (category_id, page_name, page_url, page_description)
-VALUES (2, '복권방 찾기', '/toto', '복권방 위치 찾기 페이지입니다.');
+VALUES (1, '복권방 찾기', '/toto', '복권방 위치 찾기 페이지입니다.');
 
 ---------------------------------------------------------------
 -- Toilet

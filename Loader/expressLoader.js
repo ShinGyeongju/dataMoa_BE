@@ -3,6 +3,7 @@ const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const fs = require("fs");
 
 
 const cspOptions = {
@@ -30,8 +31,35 @@ module.exports = async (app) => {
   // JSON parser
   app.use(express.json());
 
+  // HTML Response
+  app.get('/', (req, res) => {
+    const indexHTML = fs.readFileSync(path.join(__dirname, '../API/Views/build/index.html'), {
+      encoding: 'utf8'
+    });
+
+    const datamoaMeta = fs.readFileSync(path.join(__dirname, '../API/Views/build/meta/datamoa.txt'), {
+      encoding: 'utf8'
+    });
+
+    const responseHTML = indexHTML.replace('<title></title>', datamoaMeta);
+
+    res.contentType('text/html').status(200).send(responseHTML);
+  });
+
+  app.get('/toilet', (req, res) => {
+    const indexHTML = fs.readFileSync(path.join(__dirname, '../API/Views/build/index.html'), {
+      encoding: 'utf8'
+    });
+
+    const toiletMeta = fs.readFileSync(path.join(__dirname, '../API/Views/build/meta/toilet.txt'), {
+      encoding: 'utf8'
+    });
+
+    const responseHTML = indexHTML.replace('<title></title>', toiletMeta);
+
+    res.contentType('text/html').status(200).send(responseHTML);
+  });
+
   // Static file
   app.use(express.static(path.join(__dirname, '../API/Views/build')));
 }
-
-module.exports
