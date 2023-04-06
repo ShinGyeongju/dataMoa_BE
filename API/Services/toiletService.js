@@ -3,8 +3,6 @@ const toiletModel = require('../Models/toiletModel');
 const {createResponseObj, createErrorMetaObj, joinHTML} = require('./commonService');
 const {apiConfig, toiletDownloadConfig} = require('../../Common/config');
 const excel = require('xlsx');
-const fs = require("fs");
-const path = require("path");
 
 
 // Service
@@ -71,9 +69,10 @@ module.exports.getMapInfo = async (req, res, next) => {
 
 
 // Fetch from url
-const addressValidator = (address) => {
-  if (/[0-9]/.test(address)) {
-    const replaceAddr = address.replace(',', '').replace(/\(.*\)/g, '').trim();
+const addressValidator = (region, address) => {
+  let result = address;
+  if (/[0-9]/.test(result)) {
+    const replaceAddr = result.replace(',', '').replace(/\(.*\)/g, '').trim();
     const splitAddr = replaceAddr.split(' ').reverse();
 
     for (const item of splitAddr.slice()) {
@@ -83,10 +82,11 @@ const addressValidator = (address) => {
       splitAddr.shift();
     }
 
-    return splitAddr.reverse().join(' ');
-  } else {
-    return address;
+    result = splitAddr.reverse().join(' ');
   }
+
+
+  return result;
 }
 
 const fetchToiletData = async () => {
@@ -115,8 +115,8 @@ const fetchToiletData = async () => {
           const address = item['소재지지번주소'];
           const roadAddress = item['소재지도로명주소'];
 
-          item['소재지지번주소'] = address ? addressValidator(address) : address;
-          item['소재지도로명주소'] = roadAddress ? addressValidator(roadAddress) : roadAddress;
+          item['소재지지번주소'] = address ? addressValidator(pair.region, address) : address;
+          item['소재지도로명주소'] = roadAddress ? addressValidator(pair.region, roadAddress) : roadAddress;
 
           return item;
         })
@@ -140,8 +140,13 @@ const fetchToiletData = async () => {
 
       // TODO: 지도 API 요청을 병렬로 처리시, API 서버의 할당량 초과 문제 발생.
       for (const row of jsonSheet) {
-        let address_1 = row['소재지지번주소'];
-        let address_2 = row['소재지도로명주소'];
+        const address_1 = row['소재지지번주소'];
+        const address_2 = row['소재지도로명주소'];
+
+        if (!address_1 && !address_2) {
+          continue;
+        }
+
         let currentAddress = address_1 || address_2;
 
         // 직전에 실패한 주소와 현재의 주소가 같으면 넘어간다.

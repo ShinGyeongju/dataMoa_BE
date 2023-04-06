@@ -3,8 +3,6 @@ const datamoaModel = require('../Models/datamoaModel');
 const {createResponseObj, createErrorMetaObj, joinHTML} = require('./commonService');
 const {mailAuth} = require('../../Common/config');
 const nodemailer = require('nodemailer');
-const fs = require("fs");
-const path = require("path");
 
 
 // Service
