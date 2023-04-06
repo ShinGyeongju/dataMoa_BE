@@ -1,6 +1,6 @@
 const logger = require('../../Common/logger').toiletLogger;
 const toiletModel = require('../Models/toiletModel');
-const {createResponseObj, createErrorMetaObj, joinHTML} = require('./commonService');
+const {createResponseObj, createErrorMetaObj} = require('./commonService');
 const {apiConfig, toiletDownloadConfig} = require('../../Common/config');
 const excel = require('xlsx');
 
@@ -68,7 +68,6 @@ module.exports.getMapInfo = async (req, res, next) => {
 }
 
 
-// Fetch from url
 const addressValidator = (region, address) => {
   let result = address;
   if (/[0-9]/.test(result)) {
@@ -85,10 +84,14 @@ const addressValidator = (region, address) => {
     result = splitAddr.reverse().join(' ');
   }
 
+  if (result.split(' ').length <= 2) {
+    result = region + ' ' + result;
+  }
 
   return result;
 }
 
+// Fetch from url
 const fetchToiletData = async () => {
   const toilet = new toiletModel.Toilet();
 
