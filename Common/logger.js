@@ -76,13 +76,30 @@ module.exports.init = () => {
     }
   });
 
+  const totoLogger = winston.createLogger({
+    transports: [
+      createTransportObj_Console()
+    ]
+  });
+
+  totoLogger.httpLogger = morgan(customMorganFormat, {
+    stream: {
+      write: message => {
+        totoLogger.info(message);
+      }
+    }
+  });
+
   if (process.env.NODE_ENV === 'prod') {
     datamoaLogger.add(createTransportObj_MongoDB('info', 'datamoa', customTransportFormat_MongoDB_Info));
     datamoaLogger.add(createTransportObj_MongoDB('error', 'datamoa_error', customTransportFormat_MongoDB_Error));
     toiletLogger.add(createTransportObj_MongoDB('info', 'toilet', customTransportFormat_MongoDB_Info));
     toiletLogger.add(createTransportObj_MongoDB('error', 'toilet_error', customTransportFormat_MongoDB_Error));
+    totoLogger.add(createTransportObj_MongoDB('info', 'toto', customTransportFormat_MongoDB_Info));
+    totoLogger.add(createTransportObj_MongoDB('error', 'toto_error', customTransportFormat_MongoDB_Error));
   }
 
   module.exports.datamoaLogger = datamoaLogger;
   module.exports.toiletLogger = toiletLogger;
+  module.exports.totoLogger = totoLogger;
 }

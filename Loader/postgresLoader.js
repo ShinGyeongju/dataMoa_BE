@@ -1,5 +1,5 @@
 const {Pool} = require('pg');
-const {postgresConfig_Datamoa, postgresConfig_Toilet} = require('../Common/config');
+const {postgresConfig_Datamoa, postgresConfig_Toilet, postgresConfig_Toto} = require('../Common/config');
 
 
 // Postgres pool
@@ -21,6 +21,15 @@ const postgresClient_Toilet = new Pool({
   password: postgresConfig_Toilet.password,
 });
 
+const postgresClient_Toto = new Pool({
+  name: 'Toilet',
+  host: postgresConfig_Toto.address,
+  port: postgresConfig_Toto.port,
+  database: postgresConfig_Toto.database,
+  user: postgresConfig_Toto.user,
+  password: postgresConfig_Toto.password,
+});
+
 // Connection test
 module.exports.dbConnect = async (pgClient) => {
   await new Promise((resolve, reject) => {
@@ -39,3 +48,4 @@ module.exports.dbConnect = async (pgClient) => {
 // TODO: Pool을 바로 제공하지 않고, Query할 떄 마다 Pool의 Client를 제공하도록 수정 필요.
 module.exports.datamoaDB = postgresClient_Datamoa;
 module.exports.toiletDB = postgresClient_Toilet;
+module.exports.totoDB = postgresClient_Toto;

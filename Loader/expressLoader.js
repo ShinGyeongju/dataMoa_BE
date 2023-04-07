@@ -25,13 +25,7 @@ module.exports = async (app) => {
     crossOriginEmbedderPolicy: false
   }));
 
-  // Cookie parser
-  app.use(cookieParser());
-
-  // JSON parser
-  app.use(express.json());
-
-  // HTML Response
+  // Datamoa HTML Response
   app.get('/', (req, res) => {
     const indexHTML = fs.readFileSync(path.join(__dirname, '../API/Views/build/index.html'), {
       encoding: 'utf8'
@@ -46,6 +40,7 @@ module.exports = async (app) => {
     res.contentType('text/html').status(200).send(responseHTML);
   });
 
+  // Toilet HTML Response
   app.get('/toilet', (req, res) => {
     const indexHTML = fs.readFileSync(path.join(__dirname, '../API/Views/build/index.html'), {
       encoding: 'utf8'
@@ -59,6 +54,12 @@ module.exports = async (app) => {
 
     res.contentType('text/html').status(200).send(responseHTML);
   });
+
+  // Cookie parser
+  app.use(cookieParser());
+
+  // JSON parser
+  app.use(express.json());
 
   // Static file
   app.use(express.static(path.join(__dirname, '../API/Views/build')));

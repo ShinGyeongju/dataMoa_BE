@@ -46,6 +46,14 @@ module.exports.init = () => {
     password: process.env.POSTGRES_TOILET_PASSWORD
   }
 
+  module.exports.postgresConfig_Toto = {
+    address: process.env.POSTGRES_TOTO_ADDRESS,
+    port: process.env.POSTGRES_TOTO_PORT,
+    database: process.env.POSTGRES_TOTO_DATABASE,
+    user: process.env.POSTGRES_TOTO_USER,
+    password: process.env.POSTGRES_TOTO_PASSWORD
+  }
+
   module.exports.mailAuth = {
     gmailUser: process.env.GMAIL_USER,
     gmailPassword: process.env.GMAIL_PASSWORD
@@ -80,5 +88,25 @@ module.exports.init = () => {
     {region: '경상남도', url: process.env.TOILET_EXCEL_URL_GYEONGNAM, number: '055'},
     {region: '제주특별자치도', url: process.env.TOILET_EXCEL_URL_JEJU, number: '064'}
   ]
+
+  module.exports.totoApiConfig = {
+    dhlotteryApiUrl: process.env.TOTO_DHLOTTERY_API_URL,
+    regionArray: [
+      {region: '서울',
+        depth: ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구 ', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구']},
+      {region: '경기',
+        depth: ['가평군', '고양시 덕양구', '고양시 일산동구', '고양시 일산서구', '과천시', '광명시', '광주시']},
+      {region: '경기',
+        depth: []},
+      {region: '경기',
+        depth: []},
+      {region: '경기',
+        depth: []},
+      {region: '경기',
+        depth: []},
+      {region: '경기',
+        depth: []}
+    ]
+  }
 
 }
