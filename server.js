@@ -5,7 +5,7 @@ const fs = require('fs');
 const loader = require('./Loader/loader');
 const router = require('./API/Routes/router');
 const {serverConfig} = require('./Common/config');
-const path = require("path");
+const path = require('path');
 
 
 const startServer = async () => {

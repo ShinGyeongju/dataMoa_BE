@@ -2,7 +2,7 @@ const logger = require('../../Common/logger').totoLogger;
 const totoModel = require('../Models/totoModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
 const {apiConfig, totoApiConfig} = require('../../Common/config');
-const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 
 
 // Service
@@ -21,8 +21,6 @@ module.exports.getSync = async (req, res, next) => {
 module.exports.getMapInfo = async (req, res, next) => {
   try {
     const params = req.query;
-
-
 
     const sampleResult = [
       {
@@ -159,9 +157,74 @@ module.exports.getMapInfo = async (req, res, next) => {
 const fetchTotoData = async () => {
   const toto = new totoModel.Toto();
 
-  // Request to dhlottery
-  const dhlotteryResponse = await fetch(totoApiConfig.dhlotteryApiUrl);
-  //const $ = cheerio.load(dhlotteryResponse.);
+  let totalCount = 0;
+  const StartTime = new Date();
 
+  try {
+    const regionArray = await createRegionArray();
+
+    for (const regionObj of regionArray) {
+
+    }
+
+  } catch (err) {
+
+  } finally {
+
+  }
 }
 
+
+// Crawl from lottery pages
+const createRegionArray = async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  try {
+    await page.goto(totoApiConfig.dhlotteryCrawlUrl, {waitUnitl: 'load'});
+
+    const regionArray = [];
+    const regionCount = (await page.$$('#mainMenuArea > a')).length + 1;
+    for (let i = 1; i <= regionCount; i++) {
+      let region = '';
+
+      // 처음에만 span태그로 검색
+      if (i === 1) {
+        const regionSelector = await page.$('#mainMenuArea > span');
+        region = await regionSelector.evaluate(el => el.textContent);
+        // 다음부터 a태그로 검색
+      } else {
+        const regionSelector = await page.$(`#mainMenuArea > a:nth-child(${i})`);
+        region = await regionSelector.evaluate(el => el.textContent);
+
+        await regionSelector.click();
+
+        // click 후, element 생성 까지 1초 대기
+        await new Promise(resolve => {
+          setTimeout(() => {
+            resolve();
+          }, 1000);
+        });
+      }
+
+      const depthArray = [];
+      const depthSelectorArray = await page.$$('#subMenu > a');
+      const promiseArray = depthSelectorArray.map(async depthSelector => {
+        const depth = await depthSelector.evaluate(el => el.textContent);
+        depthArray.push(depth);
+      });
+      await Promise.all(promiseArray);
+
+      regionArray.push({
+        region: region,
+        depthArray: depthArray
+      });
+    }
+
+    return regionArray;
+  } catch (err) {
+    throw err;
+  } finally {
+    await browser.close();
+  }
+}
