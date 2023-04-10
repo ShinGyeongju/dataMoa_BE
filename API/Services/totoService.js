@@ -1,8 +1,10 @@
 const logger = require('../../Common/logger').totoLogger;
 const totoModel = require('../Models/totoModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
-const {apiConfig, totoApiConfig} = require('../../Common/config');
+const {totoApiConfig} = require('../../Common/config');
+const {geocodeApiRequest_Kakao, geocodeApiRequest_Naver, reverseGeocodeApiRequest_Naver} = require('../../Common/apiRequest');
 const puppeteer = require('puppeteer');
+const iconv = require('iconv-lite');
 
 
 // Service
@@ -157,18 +159,87 @@ module.exports.getMapInfo = async (req, res, next) => {
 const fetchTotoData = async () => {
   const toto = new totoModel.Toto();
 
-  let totalCount = 0;
-  const StartTime = new Date();
+  const startTime = new Date();
 
   try {
+    // Request to dhlottery
+    // START
     const regionArray = await createRegionArray();
 
+    const totoObjectArray = [];
     for (const regionObj of regionArray) {
+      for (const depth of regionObj.depthArray) {
+        const {totalPage} = await dhlotteryApiRequest(regionObj.region, depth, 1);
 
+        for (let i = 1; i <= totalPage; i++) {
+          const {arr} = await dhlotteryApiRequest(regionObj.region, depth, i);
+
+          for (const toto of arr) {
+            const categoryArray = [];
+            toto.LOTT_YN === 'Y' && categoryArray.push('"lotto"');
+            toto.ANNUITY_YN === 'Y' && categoryArray.push('"pension"');
+            (toto.SPEETTO500_YN === 'Y' || toto.SPEETTO1000_YN === 'Y' || toto.SPEETTO2000_YN === 'Y') && categoryArray.push('"pension"');
+
+            const splitStr = toto.BPLCLOCPLC4.split(' ');
+            const bplclocplc4 = splitStr[0];
+
+            // 상세 주소
+            const addressDetail = splitStr.length > 1 ? toto.BPLCLOCPLC4.replace(bplclocplc4 + ' ', '') : null;
+            // 상세 주소를 제외한 전체 주소
+            const address = `${toto.BPLCLOCPLC1} ${toto.BPLCLOCPLC2} ${toto.BPLCLOCPLC3} ${bplclocplc4}`
+
+            // 네이버맵에 시도 후, 실패하면 카카오맵에 시도
+            let result = await geocodeApiRequest_Naver(address);
+            result = result && await geocodeApiRequest_Kakao(address);
+
+            if (!result) {
+              const lastChar = toto.BPLCLOCPLC3.slice(-1);
+              if (lastChar === '길' || lastChar === '로') {
+                result = {roadAddress: address};
+              } else {
+                result = {address: address};
+              }
+            }
+
+            totoObjectArray.push({
+              category: categoryArray.join(', '),
+              name: toto.SHOP_NM,
+              region: regionObj.region,
+              address: result.address || null,
+              road_address: result.roadAddress || null,
+              addressDetail: addressDetail,
+              phoneNum: toto.TELEPHONE || null,
+              x: toto.ADDR_LOT,
+              y: toto.ADDR_LAT
+            });
+          }
+        }
+      }
+    }
+    // END
+
+    // Request to sportstoto
+    // START
+
+    // END
+
+
+    console.log(totoObjectArray);
+
+    const endTime = new Date();
+
+    const result = {
+      totalCount: totoObjectArray.length,
+      totalDuration: `${endTime - startTime} ms`
     }
 
-  } catch (err) {
+    logger.info('Toto data loaded', {result: result});
 
+    return result;
+  } catch (err) {
+    console.error(err);
+
+    return err;
   } finally {
 
   }
@@ -227,4 +298,24 @@ const createRegionArray = async () => {
   } finally {
     await browser.close();
   }
+}
+
+const dhlotteryApiRequest = async (region, depth, nowPage) => {
+  const response = await fetch(totoApiConfig.dhlotteryApiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
+    body: new URLSearchParams({
+      searchType: 3,
+      nowPage: nowPage,
+      sltSIDO2: region,
+      sltGUGUN2: depth,
+      corpYn: 'Y'
+    })
+  });
+  const arrayBuffer = await response.arrayBuffer();
+  const decodedString = iconv.decode(Buffer.from(arrayBuffer), 'euc-kr');
+
+  return JSON.parse(decodedString);
 }
