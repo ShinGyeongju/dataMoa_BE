@@ -93,7 +93,7 @@ module.exports.defaultPage = (req, res, next) => {
 const errorCodeArray_400 = ['22001', '23502', '23503'];
 
 module.exports.defaultErrorHandler = (err, req, res, next) => {
-  console.log(err);
+  console.error(err);
 
   if (err.code === 'ERR_HMAC_AUTH_INVALID') {
     const response = this.createResponseObj({}, '401 - Authentication failed', false);
