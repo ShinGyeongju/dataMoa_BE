@@ -12,7 +12,7 @@ module.exports.httpsInit = async (app) => {
 
     await postgresLoader.dbConnect(postgresLoader.datamoaDB);
     await postgresLoader.dbConnect(postgresLoader.toiletDB);
-    //await postgresLoader.dbConnect(postgresLoader.totoDB);
+    await postgresLoader.dbConnect(postgresLoader.totoDB);
 
     await toiletScheduler.init();
 

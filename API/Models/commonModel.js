@@ -12,6 +12,7 @@ module.exports.PostgresModel = class PostgresModel {
   }
 
   stringValidator = (str) => {
+    if (!str) return null;
     if (str.includes("'")) {
       const splitStr = str.split("'");
       let resultStr = '';

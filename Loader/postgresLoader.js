@@ -22,7 +22,7 @@ const postgresClient_Toilet = new Pool({
 });
 
 const postgresClient_Toto = new Pool({
-  name: 'Toilet',
+  name: 'Toto',
   host: postgresConfig_Toto.address,
   port: postgresConfig_Toto.port,
   database: postgresConfig_Toto.database,

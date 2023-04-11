@@ -1,10 +1,11 @@
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-SET TIME ZONE 'Asia/Seoul';
 
 ---------------------------------------------------------------
 -- Datamoa
 ---------------------------------------------------------------
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+SET TIME ZONE 'Asia/Seoul';
 
 CREATE TABLE tb_page_category (
     category_id INT GENERATED ALWAYS AS IDENTITY,
@@ -153,3 +154,32 @@ CREATE OR REPLACE TRIGGER trig_update_time
 
 INSERT INTO tb_toilet_category (toilet_category_name)
     VALUES ('공중 화장실'), ('개방 화장실'), ('간이 화장실'), ('기타');
+
+---------------------------------------------------------------
+-- Toto
+---------------------------------------------------------------
+
+CREATE DATABASE toto;
+\connect toto;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+SET TIME ZONE 'Asia/Seoul';
+
+CREATE TABLE tb_toto (
+    toto_id UUID DEFAULT uuid_generate_v4(),
+    toto_category VARCHAR(10)[] NOT NULL,
+    toto_name VARCHAR(60) NOT NULL,
+    toto_region VARCHAR(20) NOT NULL,
+    toto_address VARCHAR(100),
+    toto_road_address VARCHAR(100),
+    address_detail VARCHAR(30),
+    phone_number VARCHAR(20),
+    wsg84_x DOUBLE PRECISION NOT NULL,
+    wsg84_y DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP,
+    CONSTRAINT pk_toto_id PRIMARY KEY (toto_id)
+);
+
+---------------------------------------------------------------
+

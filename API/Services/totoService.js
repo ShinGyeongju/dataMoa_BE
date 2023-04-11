@@ -2,7 +2,7 @@ const logger = require('../../Common/logger').totoLogger;
 const totoModel = require('../Models/totoModel');
 const {createResponseObj, createErrorMetaObj} = require('./commonService');
 const {totoApiConfig} = require('../../Common/config');
-const {geocodeApiRequest_Kakao, geocodeApiRequest_Naver, reverseGeocodeApiRequest_Naver} = require('../../Common/apiRequest');
+const {geocodeApiRequest_Kakao, geocodeApiRequest_Naver} = require('../../Common/apiRequest');
 const puppeteer = require('puppeteer');
 const iconv = require('iconv-lite');
 
@@ -145,7 +145,8 @@ module.exports.getMapInfo = async (req, res, next) => {
         lat: 37.5005,
         lng: 126.8634
       }
-    ]
+    ];
+
     const response = createResponseObj(sampleResult, 'ok', true);
 
     res.status(200).json(response);
@@ -157,16 +158,14 @@ module.exports.getMapInfo = async (req, res, next) => {
 
 // Fetch from url
 const fetchTotoData = async () => {
-  const toto = new totoModel.Toto();
-
   const startTime = new Date();
+  let totoObjectArray = [];
 
+  // Request to dhlottery
+  // START
   try {
-    // Request to dhlottery
-    // START
     const regionArray = await createRegionArray();
 
-    const totoObjectArray = [];
     for (const regionObj of regionArray) {
       for (const depth of regionObj.depthArray) {
         const {totalPage} = await dhlotteryApiRequest(regionObj.region, depth, 1);
@@ -175,6 +174,9 @@ const fetchTotoData = async () => {
           const {arr} = await dhlotteryApiRequest(regionObj.region, depth, i);
 
           for (const toto of arr) {
+            // 중간 주소가 null이면 넘어간다.
+            if (!toto.BPLCLOCPLC3) continue;
+
             const categoryArray = [];
             toto.LOTT_YN === 'Y' && categoryArray.push('"lotto"');
             toto.ANNUITY_YN === 'Y' && categoryArray.push('"pension"');
@@ -190,15 +192,14 @@ const fetchTotoData = async () => {
 
             // 네이버맵에 시도 후, 실패하면 카카오맵에 시도
             let result = await geocodeApiRequest_Naver(address);
-            result = result && await geocodeApiRequest_Kakao(address);
+            result = result || await geocodeApiRequest_Kakao(address);
+            result = result || {};
 
-            if (!result) {
-              const lastChar = toto.BPLCLOCPLC3.slice(-1);
-              if (lastChar === '길' || lastChar === '로') {
-                result = {roadAddress: address};
-              } else {
-                result = {address: address};
-              }
+            const lastChar = toto.BPLCLOCPLC3.slice(-1);
+            if (lastChar === '로' || lastChar === '길') {
+              result.roadAddress = address;
+            } else {
+              result.address = address;
             }
 
             totoObjectArray.push({
@@ -216,35 +217,128 @@ const fetchTotoData = async () => {
         }
       }
     }
-    // END
+  } catch (err) {
+    return err;
+  }
+  // END
 
-    // Request to sportstoto
-    // START
+  // Request to sportstoto
+  // START
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  const protoObjectArray = [];
 
-    // END
+  try {
+    await page.goto(totoApiConfig.sportstotoCrawlUrl, {waitUnitl: 'domcontentloaded'});
 
+    // 전체 페이지 수 구하기
+    const lastPageSelector = await page.$('body > div.wrapper > div.container.content > div:nth-child(5) > div > a:nth-child(9)');
+    const lastPageHref = await lastPageSelector.evaluate(el => el.getAttribute('href'));
+    const lastPage = lastPageHref.split('=')[1];
 
-    console.log(totoObjectArray);
+    for (let i = 1; i <= lastPage; i++) {
+      await page.goto(totoApiConfig.sportstotoCrawlUrl + '?page=' + i, {waitUnitl: 'domcontentloaded'});
 
-    const endTime = new Date();
+      const totoSelectorArray = await page.$$('body > div.wrapper > div.container.content > div:nth-child(4) > div > table > tbody > tr');
 
-    const result = {
-      totalCount: totoObjectArray.length,
-      totalDuration: `${endTime - startTime} ms`
+      const totoPromiseArray = totoSelectorArray.map(async totoSelector => {
+        const addressSelector = await totoSelector.$('td.loc3');
+        const splitAddr = (await addressSelector.evaluate(el => el.textContent)).split(',');
+        const address = splitAddr[0];
+        const addressDetail = splitAddr.length > 1 ? splitAddr[1].trim() : null;
+
+        const index = totoObjectArray.findIndex(value => {
+          if (value.address === address || value.road_address === address) return true;
+        });
+
+        // 복권방 데이터와 주소가 겹치면 Category만 추가.
+        if (index <= 0) {
+          totoObjectArray.at(index).category = '"toto", ' + totoObjectArray.at(index).category;
+        } else {
+          const regionSelector = await totoSelector.$('td.loc1');
+          const region = await regionSelector.evaluate(el => el.textContent);
+
+          const nameSelector = await totoSelector.$('td.loc2');
+          const name = await nameSelector.evaluate(el => el.textContent);
+
+          const lng = await totoSelector.evaluate(el => el.getAttribute('x-axis'));
+          const lat = await totoSelector.evaluate(el => el.getAttribute('y-axis'));
+
+          // 네이버맵에 시도 후, 실패하면 카카오맵에 시도
+          let result = await geocodeApiRequest_Naver(address);
+          result = result || await geocodeApiRequest_Kakao(address);
+          result = result || {};
+
+          const addressSplit = address.split(' ');
+          const lastChar = addressSplit[2].slice(-1) + addressSplit[3].slice(-1);
+          if (lastChar.includes('로') || lastChar.includes('길')) {
+            result.roadAddress = address;
+          } else {
+            result.address = address;
+          }
+
+          protoObjectArray.push({
+            category: '"toto"',
+            name: name,
+            region: region,
+            address: result.address || null,
+            road_address: result.roadAddress || null,
+            addressDetail: addressDetail,
+            phoneNum: null,
+            x: parseFloat(lng),
+            y: parseFloat(lat)
+          });
+        }
+      });
+      await Promise.all(totoPromiseArray);
     }
 
-    logger.info('Toto data loaded', {result: result});
-
-    return result;
+    totoObjectArray = totoObjectArray.concat(protoObjectArray);
   } catch (err) {
-    console.error(err);
-
     return err;
   } finally {
-
+    await browser.close();
   }
-}
+  // END
 
+
+  // DB Insert
+  // START
+  const toto = new totoModel.Toto();
+
+  try {
+    console.log(1);
+    // Create temp table
+    const createResult = await toto.createTempTable();
+    console.log(2);
+    // Insert to tempDB
+    const insertResult = createResult && await toto.insertToTemp(totoObjectArray);
+    console.log(3);
+    // Truncate table
+    const truncateResult = insertResult && await toto.truncateTable();
+    console.log(4);
+    // Copy to table from temp table
+    const copyResult = truncateResult && await toto.copyTable();
+
+  } catch (err) {
+    return err;
+  } finally {
+    // Drop temp table
+    await toto.dropTempTable();
+  }
+  // END
+
+
+  const endTime = new Date();
+  const result = {
+    totalCount: totoObjectArray.length,
+    totalDuration: `${endTime - startTime} ms`
+  }
+
+  logger.info('Toto data loaded', {result: result});
+
+  return result;
+}
 
 // Crawl from lottery pages
 const createRegionArray = async () => {

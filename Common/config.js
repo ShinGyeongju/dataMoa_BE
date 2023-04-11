@@ -91,7 +91,8 @@ module.exports.init = () => {
 
   module.exports.totoApiConfig = {
     dhlotteryCrawlUrl: process.env.TOTO_DHLOTTERY_CRAWL_URL,
-    dhlotteryApiUrl: process.env.TOTO_DHLOTTERY_API_URL
+    dhlotteryApiUrl: process.env.TOTO_DHLOTTERY_API_URL,
+    sportstotoCrawlUrl: process.env.TOTO_SPORTSTOTO_CRAWL_URL
   }
 
 }
