@@ -85,7 +85,12 @@ const htmlDecoder = (str) => {
 
   return str
     .replaceAll('&&#35;40;', '(')
-    .replaceAll('&&#35;41;', ')');
+    .replaceAll('&&#35;41;', ')')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&#35;', '#')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&apos;', ' ');
 }
 
 // Fetch from url
@@ -109,13 +114,16 @@ const fetchTotoData = async () => {
             // 중간 주소가 null이면 넘어간다.
             if (!toto.BPLCLOCPLC3) continue;
 
-            toto.BPLCLOCPLC3 = htmlDecoder(toto.BPLCLOCPLC3);
-            toto.BPLCLOCPLC4 = htmlDecoder(toto.BPLCLOCPLC4);
-
             const categoryArray = [];
             toto.LOTT_YN === 'Y' && categoryArray.push('"lotto"');
             toto.ANNUITY_YN === 'Y' && categoryArray.push('"pension"');
             (toto.SPEETTO500_YN === 'Y' || toto.SPEETTO1000_YN === 'Y' || toto.SPEETTO2000_YN === 'Y') && categoryArray.push('"speedo"');
+
+            // 취급 권종이 없으면 넘어간다.
+            if (categoryArray.length === 0) continue;
+
+            toto.BPLCLOCPLC3 = htmlDecoder(toto.BPLCLOCPLC3);
+            toto.BPLCLOCPLC4 = htmlDecoder(toto.BPLCLOCPLC4);
 
             const splitStr = toto.BPLCLOCPLC4.split(' ');
             const bplclocplc4 = splitStr[0];
@@ -190,7 +198,11 @@ const fetchTotoData = async () => {
 
         // 복권방 데이터와 주소가 겹치면 Category만 추가.
         if (0 <= index) {
-          totoObjectArray.at(index).category = '"toto", ' + totoObjectArray.at(index).category;
+          const category = totoObjectArray.at(index).category;
+          // toto 카테고리가 이미 있으면 추가 안함.
+          if (!category.includes('"toto"')) {
+            totoObjectArray.at(index).category = '"toto", ' + category;
+          }
         } else {
           const regionSelector = await totoSelector.$('td.loc1');
           const region = await regionSelector.evaluate(el => el.textContent);
@@ -244,16 +256,12 @@ const fetchTotoData = async () => {
   const toto = new totoModel.Toto();
 
   try {
-    console.log(1);
     // Create temp table
     const createResult = await toto.createTempTable();
-    console.log(2);
     // Insert to tempDB
     const insertResult = createResult && await toto.insertToTemp(totoObjectArray);
-    console.log(3);
     // Truncate table
     const truncateResult = insertResult && await toto.truncateTable();
-    console.log(4);
     // Copy to table from temp table
     const copyResult = truncateResult && await toto.copyTable();
 

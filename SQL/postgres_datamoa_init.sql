@@ -172,7 +172,7 @@ CREATE TABLE tb_toto (
     toto_region VARCHAR(20) NOT NULL,
     toto_address VARCHAR(100),
     toto_road_address VARCHAR(100),
-    address_detail VARCHAR(30),
+    address_detail VARCHAR(100),
     phone_number VARCHAR(20),
     wsg84_x DOUBLE PRECISION NOT NULL,
     wsg84_y DOUBLE PRECISION NOT NULL,
