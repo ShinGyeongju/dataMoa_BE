@@ -64,7 +64,7 @@ module.exports.getMapInfo = async (req, res, next) => {
           name: row.toto_name,
           region: row.toto_region,
           address: row.toto_address,
-          roadAddress: row.toto_road_address + ', ' + row.address_detail,
+          roadAddress: row.address_detail ? row.toto_road_address + ', ' + row.address_detail : row.toto_road_address,
           phoneNumber: row.phone_number,
           lat: row.wsg84_y,
           lng: row.wsg84_x

@@ -52,7 +52,7 @@ module.exports.Toto = class Toto extends PostgresModel{
 
       queryString = `SELECT *
        FROM tb_toto AS toto
-       WHERE toto.toto_category && '{${type.join(',')}'
+       WHERE toto.toto_category && '{${type.join(',')}}'
        AND toto.wsg84_y BETWEEN ${params.sw_lat} AND ${params.ne_lat} AND toto.wsg84_x BETWEEN ${params.sw_lng} AND ${params.ne_lng};`;
     }
 
