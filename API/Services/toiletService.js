@@ -23,6 +23,7 @@ module.exports.getMapInfo = async (req, res, next) => {
   try {
     const params = req.query;
 
+    // 파라미터가 누락되면 Code 400 반환
     if (!params.location_lat || !params.location_lng || !params.sw_lat || !params.sw_lng || !params.ne_lat || !params.ne_lng) {
       const response = createResponseObj({}, '[10021] Invalid query', false);
       res.status(400).json(response);
@@ -38,7 +39,7 @@ module.exports.getMapInfo = async (req, res, next) => {
         row.distance = Math.sqrt(Math.pow(row.wsg84_x - parseFloat(params.location_lng), 2) + Math.pow(row.wsg84_y - parseFloat(params.location_lat), 2));
         return row;
       })
-      // 직선 거리 기준으로 오름차순으로 정렬
+      // 직선 거리 기준 오름차순으로 정렬
       .sort((a, b) => {
         return a.distance - b.distance;
       })

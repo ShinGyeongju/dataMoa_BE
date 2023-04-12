@@ -20,7 +20,7 @@ module.exports.Toto = class Toto extends PostgresModel{
       const addressDetail = this.nullValidator(this.stringValidator(row.addressDetail));
       const phoneNum = this.nullValidator(row.phoneNum);
 
-      querySql += `(uuid_generate_v4(), '{${row.category}}', '${row.name}', '${row.region}', ${address}, ${roadAddress}, ${addressDetail}, ${phoneNum}, ${row.x}, ${row.y}, now()),`;
+      querySql += `(uuid_generate_v4(), '{${row.category}}', '${this.stringValidator(row.name)}', '${row.region}', ${address}, ${roadAddress}, ${addressDetail}, ${phoneNum}, ${row.x}, ${row.y}, now()),`;
     });
 
     return totoDB.query(querySql.slice(0, -1));
@@ -36,6 +36,27 @@ module.exports.Toto = class Toto extends PostgresModel{
 
   dropTempTable() {
     return totoDB.query('DROP TABLE IF EXISTS tb_toto_temp;');
+  }
+
+  readByLatLng(params) {
+    let queryString = '';
+
+    if (params.typeArray.length === 4) {
+      queryString = `SELECT *
+       FROM tb_toto AS toto
+       WHERE toto.wsg84_y BETWEEN ${params.sw_lat} AND ${params.ne_lat} AND toto.wsg84_x BETWEEN ${params.sw_lng} AND ${params.ne_lng};`;
+    } else {
+      const type = params.typeArray.map(type => {
+        return '"' + type + '"';
+      });
+
+      queryString = `SELECT *
+       FROM tb_toto AS toto
+       WHERE toto.toto_category && '{${type.join(',')}'
+       AND toto.wsg84_y BETWEEN ${params.sw_lat} AND ${params.ne_lat} AND toto.wsg84_x BETWEEN ${params.sw_lng} AND ${params.ne_lng};`;
+    }
+
+    return totoDB.query(queryString);
   }
 
 }
