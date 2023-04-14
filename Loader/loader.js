@@ -3,7 +3,7 @@ require('../Common/logger').init();
 
 const expressLoader = require('./expressLoader');
 const postgresLoader = require('./postgresLoader');
-const toiletScheduler = require('../Scheduler/toiletScheduler');
+const scheduler = require('../Scheduler/scheduler');
 
 
 module.exports.httpsInit = async (app) => {
@@ -14,7 +14,7 @@ module.exports.httpsInit = async (app) => {
     await postgresLoader.dbConnect(postgresLoader.toiletDB);
     await postgresLoader.dbConnect(postgresLoader.totoDB);
 
-    await toiletScheduler.init();
+    await scheduler.init();
 
     return true;
   } catch (err) {

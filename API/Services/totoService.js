@@ -284,6 +284,7 @@ const fetchTotoData = async () => {
 
   return result;
 }
+module.exports.fetchTotoData = fetchTotoData;
 
 // Crawl from lottery pages
 const createRegionArray = async () => {
