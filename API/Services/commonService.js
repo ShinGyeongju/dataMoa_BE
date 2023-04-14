@@ -84,9 +84,9 @@ module.exports.createErrorMetaObj = (err) => {
 
 // Default page
 module.exports.defaultPage = (req, res, next) => {
-  // res.sendfile(path.join(__dirname, '../Views/build/index.html'));
+  //res.status(301).redirect('/');
 
-  res.status(301).redirect('/');
+  res.contentType('text/html').status(200).sendfile(path.join(__dirname, '../Views/build/index.html'));
 }
 
 // Default error handler
