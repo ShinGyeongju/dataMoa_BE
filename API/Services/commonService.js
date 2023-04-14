@@ -101,7 +101,7 @@ module.exports.defaultErrorHandler = (err, req, res, next) => {
     return;
   }
 
-  err.code = err.code || '10000';
+  err.code = err.code || '[10000] Unhandled error';
   err.statusCode = errorCodeArray_400.includes(err.code) ? 400 : 500;
 
   const response = this.createResponseObj({}, err.code, false);

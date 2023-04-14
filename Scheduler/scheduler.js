@@ -7,8 +7,10 @@ const fetchToto = require('../API/Services/totoService').fetchTotoData;
 module.exports.init = async () => {
   // Toilet scheduler
   const toiletRule = new schedule.RecurrenceRule();
-  toiletRule.month = [4, 10];
+  toiletRule.month = [3, 9];
   toiletRule.date = 28;
+  toiletRule.hour = 0;
+  toiletRule.minute = 0;
   toiletRule.tz = 'Asia/Seoul';
 
   const toiletJob = schedule.scheduleJob(toiletRule, async () => {
@@ -18,8 +20,10 @@ module.exports.init = async () => {
 
   // Toto scheduler
   const totoRule = new schedule.RecurrenceRule();
-  totoRule.month = [3, 6, 9, 12];
+  totoRule.month = [2, 5, 8, 11];
   totoRule.date = 15;
+  totoRule.hour = 0;
+  totoRule.minute = 0;
   totoRule.tz = 'Asia/Seoul';
 
   const totoJob = schedule.scheduleJob(totoRule, async () => {
