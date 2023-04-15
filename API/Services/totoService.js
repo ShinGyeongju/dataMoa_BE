@@ -145,6 +145,19 @@ const fetchTotoData = async () => {
               result.address = address;
             }
 
+            let lng = parseFloat(toto.ADDR_LOT);
+            let lat = parseFloat(toto.ADDR_LAT);
+
+            // X/Y좌표 중 0이 있으면 맵API의 결과를 사용
+            if (lng === 0 || lat === 0) {
+              if (result.x && result.y) {
+                lng = parseFloat(result.x);
+                lat = parseFloat(result.y);
+              } else {
+                continue;
+              }
+            }
+
             totoObjectArray.push({
               category: categoryArray.join(', '),
               name: htmlDecoder(toto.SHOP_NM),
@@ -153,13 +166,21 @@ const fetchTotoData = async () => {
               road_address: result.roadAddress || null,
               addressDetail: addressDetail,
               phoneNum: toto.TELEPHONE || null,
-              x: toto.ADDR_LOT,
-              y: toto.ADDR_LAT
+              x: lng,
+              y: lat
             });
           }
         }
       }
     }
+
+    // 복권 데이터 X/Y좌표 기준 중복 제거
+    totoObjectArray = totoObjectArray.filter((value, index) => {
+      const findIndex = totoObjectArray.findIndex((value2) => {
+        return value.x === value2.x && value.y === value2.y;
+      });
+      return findIndex === index;
+    });
   } catch (err) {
     return err;
   }
@@ -169,7 +190,7 @@ const fetchTotoData = async () => {
   // START
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  const protoObjectArray = [];
+  let protoObjectArray = [];
 
   try {
     await page.goto(totoApiConfig.sportstotoCrawlUrl, {waitUnitl: 'domcontentloaded'});
@@ -192,11 +213,17 @@ const fetchTotoData = async () => {
         let addressDetail = splitAddr.length > 1 ? splitAddr[1].trim() : null;
         addressDetail = htmlDecoder(addressDetail);
 
+        let lng = await totoSelector.evaluate(el => el.getAttribute('x-axis'));
+        lng = parseFloat(lng);
+        let lat = await totoSelector.evaluate(el => el.getAttribute('y-axis'));
+        lat = parseFloat(lat);
+
         const index = totoObjectArray.findIndex(value => {
           if (value.address === address || value.road_address === address) return true;
+          if (value.x.toFixed(5) === lng.toFixed(5) && value.y.toFixed(5) === lat.toFixed(5)) return true;
         });
 
-        // 복권방 데이터와 주소가 겹치면 Category만 추가.
+        // 복권방 데이터의 주소나 X/Y좌표가 겹치면 Category만 추가.
         if (0 <= index) {
           const category = totoObjectArray.at(index).category;
           // toto 카테고리가 이미 있으면 추가 안함.
@@ -209,9 +236,6 @@ const fetchTotoData = async () => {
 
           const nameSelector = await totoSelector.$('td.loc2');
           const name = await nameSelector.evaluate(el => el.textContent);
-
-          const lng = await totoSelector.evaluate(el => el.getAttribute('x-axis'));
-          const lat = await totoSelector.evaluate(el => el.getAttribute('y-axis'));
 
           // 네이버맵에 시도 후, 실패하면 카카오맵에 시도
           let result = await geocodeApiRequest_Naver(address);
@@ -234,14 +258,23 @@ const fetchTotoData = async () => {
             road_address: result.roadAddress || null,
             addressDetail: addressDetail,
             phoneNum: null,
-            x: parseFloat(lng),
-            y: parseFloat(lat)
+            x: lng,
+            y: lat
           });
         }
       });
       await Promise.all(totoPromiseArray);
     }
 
+    // 프로토 데이터 X/Y좌표 기준 중복 제거
+    protoObjectArray = protoObjectArray.filter((value, index) => {
+      const findIndex = protoObjectArray.findIndex((value2) => {
+        return value.x === value2.x && value.y === value2.y;
+      });
+      return findIndex === index;
+    });
+
+    // 복권 데이터와 프로토 데이터 병합
     totoObjectArray = totoObjectArray.concat(protoObjectArray);
   } catch (err) {
     return err;
@@ -249,7 +282,6 @@ const fetchTotoData = async () => {
     await browser.close();
   }
   // END
-
 
   // DB Insert
   // START
@@ -264,7 +296,6 @@ const fetchTotoData = async () => {
     const truncateResult = insertResult && await toto.truncateTable();
     // Copy to table from temp table
     const copyResult = truncateResult && await toto.copyTable();
-
   } catch (err) {
     return err;
   } finally {
@@ -272,7 +303,6 @@ const fetchTotoData = async () => {
     await toto.dropTempTable();
   }
   // END
-
 
   const endTime = new Date();
   const result = {
