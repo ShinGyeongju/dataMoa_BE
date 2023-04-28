@@ -14,7 +14,8 @@ module.exports.httpsInit = async (app) => {
     await postgresLoader.dbConnect(postgresLoader.toiletDB);
     await postgresLoader.dbConnect(postgresLoader.totoDB);
 
-    await scheduler.init();
+    // TODO: 서버 과부하 이슈로 인해 스케줄러 중지.
+    //await scheduler.init();
 
     return true;
   } catch (err) {
